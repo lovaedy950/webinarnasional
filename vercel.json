@@ -4,10 +4,6 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/upload_proof.php",
-      "destination": "/api/upload_proof"
-    },
-    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
