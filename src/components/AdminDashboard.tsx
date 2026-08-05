@@ -847,8 +847,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                   </span>
                 </div>
 
-                {/* REAL IMAGE PREVIEW (IF DATA URL OR IMAGE EXTENSION) */}
-                {selectedRecord.paymentProofUrl && selectedRecord.paymentProofUrl.startsWith('data:image/') ? (
+                {/* REAL IMAGE PREVIEW (SUPPORT HTTP, HTTPS, B2 URL, DATA URL, AND LOCAL UPLODS) */}
+                {selectedRecord.paymentProofUrl && (
+                  selectedRecord.paymentProofUrl.startsWith('data:image/') ||
+                  selectedRecord.paymentProofUrl.startsWith('http://') ||
+                  selectedRecord.paymentProofUrl.startsWith('https://') ||
+                  selectedRecord.paymentProofUrl.startsWith('/uploads/')
+                ) && !selectedRecord.paymentProofUrl.includes('.pdf') ? (
                   <div className="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-center space-y-3">
                     <div className="relative group overflow-hidden rounded-xl border border-slate-700 bg-black max-h-72 flex items-center justify-center">
                       <img
@@ -856,6 +861,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                         alt="Bukti Transfer Pembayaran"
                         className="max-h-72 w-auto object-contain cursor-pointer transition-transform group-hover:scale-105"
                         onClick={() => setPreviewImageSrc(selectedRecord.paymentProofUrl || null)}
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          console.warn('Image load fallback');
+                        }}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none">
                         <span className="bg-white/90 text-slate-900 text-xs font-extrabold px-3 py-1.5 rounded-lg shadow-md flex items-center gap-1.5">
@@ -876,22 +885,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
 
                       <a
                         href={selectedRecord.paymentProofUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         download={selectedRecord.paymentProofName || `bukti_transfer_${selectedRecord.id}.png`}
                         className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 flex items-center gap-1.5 transition-colors"
                       >
                         <Download className="w-4 h-4" />
-                        <span>Unduh Berkas Foto</span>
+                        <span>Buka / Unduh Berkas Foto</span>
                       </a>
                     </div>
                   </div>
-                ) : selectedRecord.paymentProofUrl && selectedRecord.paymentProofUrl.startsWith('data:application/pdf') ? (
+                ) : selectedRecord.paymentProofUrl && (
+                  selectedRecord.paymentProofUrl.startsWith('data:application/pdf') ||
+                  selectedRecord.paymentProofUrl.includes('.pdf')
+                ) ? (
                   /* REAL PDF PREVIEW */
                   <div className="bg-slate-50 p-5 rounded-2xl border-2 border-dashed border-slate-300 text-center space-y-3">
                     <div className="w-14 h-14 rounded-2xl bg-red-100 text-red-700 font-extrabold flex items-center justify-center mx-auto shadow-sm text-sm">
                       PDF
                     </div>
                     <div>
-                      <span className="font-bold text-slate-900 text-sm block">{selectedRecord.paymentProofName}</span>
+                      <span className="font-bold text-slate-900 text-sm block">{selectedRecord.paymentProofName || 'Dokumen Bukti Transfer.pdf'}</span>
                       <span className="text-xs text-slate-500 block">Dokumen PDF Bukti Transfer</span>
                     </div>
 

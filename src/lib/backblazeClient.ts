@@ -7,7 +7,6 @@ export const uploadProofToBackblaze = async (
   if (typeof base64OrBuffer === 'string') {
     base64Str = base64OrBuffer;
   } else {
-    // Uint8Array to base64
     let binary = '';
     const bytes = base64OrBuffer;
     const len = bytes.byteLength;
@@ -18,7 +17,7 @@ export const uploadProofToBackblaze = async (
   }
 
   try {
-    const res = await fetch('/api/upload_proof.php', {
+    const res = await fetch('/api/upload_proof', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -39,7 +38,6 @@ export const uploadProofToBackblaze = async (
     console.warn('Backblaze B2 Upload API Notice:', err);
   }
 
-  // Fallback: return base64 data if upload endpoint not reached
   return {
     key: `proofs/${regId}_${Date.now()}.png`,
     presignedUrl: base64Str
