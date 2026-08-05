@@ -46,5 +46,19 @@ export const uploadProofToBackblaze = async (
 
 export const getProofPresignedUrl = async (objectKeyOrUrl: string): Promise<string> => {
   if (!objectKeyOrUrl) return '';
+  if (objectKeyOrUrl.startsWith('http://') || objectKeyOrUrl.startsWith('https://') || objectKeyOrUrl.startsWith('data:')) {
+    return objectKeyOrUrl;
+  }
+
+  try {
+    const res = await fetch('/api/upload_proof?key=' + encodeURIComponent(objectKeyOrUrl));
+    const data = await res.json();
+    if (data.success && data.url) {
+      return data.url;
+    }
+  } catch (e) {
+    console.warn('Failed to resolve B2 presigned URL:', e);
+  }
+
   return objectKeyOrUrl;
 };

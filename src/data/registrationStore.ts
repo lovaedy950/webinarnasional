@@ -216,7 +216,7 @@ export const saveRegistration = async (record: Omit<RegistrationRecord, 'id' | '
       series: record.series,
       total_amount: record.totalAmount,
       payment_proof_name: record.paymentProofName,
-      payment_proof_url: b2ProofKey || record.paymentProofUrl,
+      payment_proof_url: b2PresignedUrl || b2ProofKey || record.paymentProofUrl,
       status: 'pending'
     }]).select();
 
