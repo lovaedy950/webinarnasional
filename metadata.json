@@ -1,0 +1,6 @@
+{
+  "name": "Parade Webinar Nasional RSUP Dr. Kariadi",
+  "description": "Landing page Parade Webinar Nasional RSUP Dr. Kariadi Semarang dalam rangka HUT Ke-101.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
