@@ -1,24 +1,6 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
-  # Keamanan file .env
-  <Files .env>
-    Order allow,deny
-    Deny from all
-  </Files>
-
-  # Routing API ke PHP Backend Hostinger
-  RewriteRule ^api/register/?$ api/register.php [L,QSA]
-  RewriteRule ^api/health/?$ api/health.php [L,QSA]
-  RewriteRule ^api/registrations/?$ api/registrations.php [L,QSA]
-  RewriteRule ^api/update_status/?$ api/update_status.php [L,QSA]
-  RewriteRule ^api/delete_registration/?$ api/delete_registration.php [L,QSA]
-  RewriteRule ^api/submission_logs/?$ api/submission_logs.php [L,QSA]
-  RewriteRule ^api/retry_submission/?$ api/retry_submission.php [L,QSA]
-
-  # Routing SPA React Frontend
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.html [L]
+  # Redirect 301 Permanent to Vercel
+  RewriteRule ^(.*)$ https://webinarnasional-seven.vercel.app/$1 [R=301,L]
 </IfModule>

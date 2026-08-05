@@ -8,8 +8,9 @@ import { getMaintenanceConfig, saveMaintenanceConfig, MaintenanceConfig } from '
 import { 
   Users, CheckCircle2, Clock, XCircle, DollarSign, Search, Filter, Download, 
   Eye, LogOut, ExternalLink, Phone, MessageSquare, ShieldCheck, RefreshCw, FileText, 
-  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench
+  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench, Menu
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import logoKariadi from '../assets/images/Logo_RS_Kariadi_Resmi.png';
 import logoPpni from '../assets/images/logo ppni.png';
 import logoKemenkes from '../assets/images/logo kemenkes.png';
@@ -22,6 +23,7 @@ interface AdminDashboardProps {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoToPublic }) => {
   const [activeTab, setActiveTab] = useState<'registrations' | 'logs'>('registrations');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
   const [submissionLogs, setSubmissionLogs] = useState<SubmissionLog[]>([]);
@@ -173,65 +175,74 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
       
       {/* Top Header Navigation */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
           
-          {/* Left Brand */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white/95 p-1.5 rounded-xl shadow-sm">
-              <img src={logoKemenkes} alt="Kemenkes" className="h-6 object-contain" />
+          {/* Left Brand & Mobile Hamburger Toggle */}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 lg:hidden border border-slate-700 transition-colors cursor-pointer"
+              aria-label="Open Sidebar Menu"
+            >
+              <Menu className="w-5 h-5 text-cyan-400" />
+            </button>
+
+            <div className="flex items-center gap-2 bg-white/95 p-1 sm:p-1.5 rounded-xl shadow-sm">
+              <img src={logoKemenkes} alt="Kemenkes" className="h-5 sm:h-6 object-contain" />
               <div className="h-4 w-[1px] bg-slate-300"></div>
-              <img src={logoKariadi} alt="RSUP Dr. Kariadi" className="h-6 object-contain" />
+              <img src={logoKariadi} alt="RSUP Dr. Kariadi" className="h-5 sm:h-6 object-contain" />
               <div className="h-4 w-[1px] bg-slate-300"></div>
-              <img src={logoPpni} alt="PPNI" className="h-8 object-contain scale-110" />
+              <img src={logoPpni} alt="PPNI" className="h-7 sm:h-8 object-contain scale-110" />
             </div>
-            <div>
+
+            <div className="hidden sm:block">
               <span className="font-extrabold text-white text-sm sm:text-base tracking-tight block">
                 ADMIN PORTAL VERIFIKASI & LOGS
               </span>
               <span className="text-[10px] text-cyan-300 font-bold uppercase tracking-wider block">
-                HUT Ke-101 RSUP Dr. Kariadi (Hostinger MySQL Powered)
+                HUT Ke-101 RSUP Dr. Kariadi (Supabase & Backblaze Powered)
               </span>
             </div>
           </div>
 
-          {/* Right Action Controls */}
+          {/* Right Action Controls (Desktop & Mobile Quick Switcher) */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Status Switcher Button */}
             {maintConfig.isClosed ? (
-              <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/40 p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-amber-500/20 border border-amber-400/40 p-1 rounded-xl">
                 <button
                   onClick={() => handleToggleMaintenance(false)}
-                  className="px-3 py-1.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow transition-all flex items-center gap-1.5 cursor-pointer animate-pulse"
+                  className="px-2.5 py-1.5 text-[11px] sm:text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow transition-all flex items-center gap-1 cursor-pointer animate-pulse"
                   title="Klik untuk membuka pendaftaran kembali"
                 >
                   <Power className="w-3.5 h-3.5" />
-                  <span>BUKA PENDAFTARAN</span>
+                  <span>BUKA</span>
                 </button>
                 <button
                   onClick={() => setShowMaintModal(true)}
-                  className="px-2 py-1.5 text-amber-200 hover:text-white hover:bg-amber-400/20 rounded-lg transition-colors"
+                  className="p-1.5 text-amber-200 hover:text-white hover:bg-amber-400/20 rounded-lg transition-colors"
                   title="Pengaturan Pesan Pengumuman"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/40 p-1 rounded-xl">
-                <span className="px-2 text-[11px] font-black text-emerald-300 uppercase flex items-center gap-1">
+              <div className="flex items-center gap-1 bg-emerald-500/20 border border-emerald-400/40 p-1 rounded-xl">
+                <span className="px-2 text-[10px] sm:text-[11px] font-black text-emerald-300 uppercase flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   DIBUKA
                 </span>
                 <button
                   onClick={() => handleToggleMaintenance(true)}
-                  className="px-2.5 py-1 text-xs font-bold text-amber-200 hover:text-white bg-amber-500/30 hover:bg-amber-600 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-2 py-1 text-[11px] font-bold text-amber-200 hover:text-white bg-amber-500/30 hover:bg-amber-600 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                   title="Klik untuk menutup sementara pendaftaran"
                 >
                   <Power className="w-3 h-3" />
-                  <span>TUTUP SEMENTARA</span>
+                  <span className="hidden sm:inline">TUTUP SEMENTARA</span>
                 </button>
                 <button
                   onClick={() => setShowMaintModal(true)}
-                  className="px-1.5 py-1 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-1 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   title="Pengaturan Pesan"
                 >
                   <Settings className="w-3.5 h-3.5" />
@@ -241,15 +252,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
 
             <button
               onClick={onGoToPublic}
-              className="px-3 py-1.5 text-xs font-bold text-cyan-300 hover:text-white bg-white/10 hover:bg-white/20 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              className="hidden md:flex px-3 py-1.5 text-xs font-bold text-cyan-300 hover:text-white bg-white/10 hover:bg-white/20 rounded-xl transition-all items-center gap-1.5 cursor-pointer"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Lihat Web Publik</span>
+              <span>Web Publik</span>
             </button>
 
             <button
               onClick={onLogout}
-              className="px-3 py-1.5 text-xs font-bold text-red-300 hover:text-white bg-red-500/20 hover:bg-red-600 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              className="hidden md:flex px-3 py-1.5 text-xs font-bold text-red-300 hover:text-white bg-red-500/20 hover:bg-red-600 rounded-xl transition-all items-center gap-1.5 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Keluar</span>
@@ -258,6 +269,197 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
 
         </div>
       </header>
+
+      {/* MOBILE SLIDE-OUT SIDEBAR DRAWER & BACKDROP */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <div className="fixed inset-0 z-50 flex">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
+            />
+
+            {/* Drawer Window */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative w-4/5 max-w-xs sm:max-w-sm bg-slate-900 text-white h-full shadow-2xl z-10 flex flex-col justify-between overflow-y-auto"
+            >
+              <div className="p-4 sm:p-5 space-y-5">
+                {/* Header Drawer */}
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 bg-white p-1 rounded-xl">
+                      <img src={logoKariadi} alt="RS Kariadi" className="h-5 object-contain" />
+                      <img src={logoPpni} alt="PPNI" className="h-6 object-contain" />
+                    </div>
+                    <div>
+                      <span className="font-extrabold text-white text-xs block">ADMIN DASHBOARD</span>
+                      <span className="text-[10px] text-cyan-300 font-bold block">DPK PPNI KARIADI</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* System Control Switcher */}
+                <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 space-y-2.5 text-left">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status System Pendaftaran</span>
+                  
+                  {maintConfig.isClosed ? (
+                    <div className="space-y-2">
+                      <span className="px-2.5 py-1 text-xs font-black bg-amber-500/20 text-amber-300 rounded-lg border border-amber-400/30 flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        DITUTUP SEMENTARA
+                      </span>
+                      <button
+                        onClick={() => {
+                          handleToggleMaintenance(false);
+                          setIsSidebarOpen(false);
+                        }}
+                        className="w-full py-2 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Power className="w-4 h-4" />
+                        <span>BUKA PENDAFTARAN</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <span className="px-2.5 py-1 text-xs font-black bg-emerald-500/20 text-emerald-300 rounded-lg border border-emerald-400/30 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        PENDAFTARAN DIBUKA
+                      </span>
+                      <button
+                        onClick={() => {
+                          handleToggleMaintenance(true);
+                          setIsSidebarOpen(false);
+                        }}
+                        className="w-full py-2 text-xs font-bold text-amber-200 bg-amber-500/30 hover:bg-amber-600 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Power className="w-4 h-4" />
+                        <span>TUTUP SEMENTARA</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setShowMaintModal(true);
+                      setIsSidebarOpen(false);
+                    }}
+                    className="w-full py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    <span>Pengaturan Pesan</span>
+                  </button>
+                </div>
+
+                {/* Sidebar Navigation Menu */}
+                <div className="space-y-1.5 text-left">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block px-1">Menu Utama</span>
+                  
+                  <button
+                    onClick={() => {
+                      setActiveTab('registrations');
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`w-full p-3 rounded-xl font-bold text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                      activeTab === 'registrations' ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Users className="w-4 h-4" />
+                      <span>Data Pendaftar</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-black/30 rounded-full text-[10px] font-mono">{totalCount}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab('logs');
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`w-full p-3 rounded-xl font-bold text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                      activeTab === 'logs' ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Activity className="w-4 h-4" />
+                      <span>Audit & Error Logs</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-black/30 rounded-full text-[10px] font-mono">{totalLogsCount}</span>
+                  </button>
+                </div>
+
+                {/* Quick Stats Summary */}
+                <div className="space-y-2 text-left bg-slate-800/50 p-3 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Ringkasan Ringkas</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block">Valid Lunas</span>
+                      <span className="font-extrabold text-emerald-400">{validCount} Peserta</span>
+                    </div>
+                    <div className="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block">Pending</span>
+                      <span className="font-extrabold text-amber-400">{pendingCount} Peserta</span>
+                    </div>
+                  </div>
+                  <div className="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Total Omset</span>
+                    <span className="font-extrabold text-cyan-300 text-sm">Rp {totalRevenue.toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="p-4 border-t border-slate-800 space-y-2 text-left bg-slate-950">
+                <button
+                  onClick={() => {
+                    exportToCSV(filteredData);
+                    setIsSidebarOpen(false);
+                  }}
+                  className="w-full py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Ekspor Excel (CSV)</span>
+                </button>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    onClick={() => {
+                      onGoToPublic();
+                      setIsSidebarOpen(false);
+                    }}
+                    className="py-2 text-[11px] font-bold text-cyan-300 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Web Publik</span>
+                  </button>
+
+                  <button
+                    onClick={onLogout}
+                    className="py-2 text-[11px] font-bold text-red-300 bg-red-500/20 hover:bg-red-600 rounded-xl flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Keluar</span>
+                  </button>
+                </div>
+              </div>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -438,8 +640,131 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
               </div>
             </div>
 
-            {/* Data Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* DATA VIEW (MOBILE CARDS & DESKTOP TABLE) */}
+            
+            {/* MOBILE CARDS VIEW (VISIBLE ON SMARTPHONES < md) */}
+            <div className="block md:hidden space-y-3">
+              {filteredData.length === 0 ? (
+                <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold shadow-sm">
+                  Tidak ada data pendaftaran yang sesuai.
+                </div>
+              ) : (
+                filteredData.map((record) => {
+                  const isValid = record.status === 'valid';
+                  const isRejected = record.status === 'rejected';
+
+                  return (
+                    <div key={record.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3.5 text-left">
+                      {/* Card Header: Status Badge & ID/Date */}
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 text-xs font-mono">{record.id}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">{record.createdAt}</span>
+                        </div>
+                        
+                        <button
+                          onClick={() => handleToggleStatus(record.id, record.status)}
+                          className={`px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 transition-all cursor-pointer ${
+                            isValid
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : isRejected
+                              ? 'bg-red-100 text-red-800 border border-red-300'
+                              : 'bg-amber-100 text-amber-800 border border-amber-300'
+                          }`}
+                        >
+                          {isValid ? (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>SUDAH MEMBAYAR</span>
+                            </>
+                          ) : isRejected ? (
+                            <>
+                              <XCircle className="w-3.5 h-3.5 text-red-600" />
+                              <span>DITOLAK</span>
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                              <span>PENDING (CEKLIST)</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Card Body: Participant Details */}
+                      <div className="space-y-1 text-left">
+                        <span className="font-extrabold text-slate-900 text-sm block leading-snug">{record.fullName}</span>
+                        
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-600 font-medium">
+                          <span className="text-cyan-800 font-mono font-bold">{record.email}</span>
+                          <span className="text-slate-300">•</span>
+                          <span className="font-mono text-slate-600">NIK: {record.nikKtp}</span>
+                        </div>
+
+                        <div className="text-xs text-slate-600 font-medium pt-1">
+                          🏢 <span className="font-bold text-slate-800">{record.installation}</span> ({record.city})
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1 pt-1.5 text-[10px]">
+                          <span className="px-2 py-0.5 font-extrabold bg-slate-100 text-slate-800 rounded border border-slate-200">
+                            {record.categoryName}
+                          </span>
+                          {record.series.map((s, idx) => (
+                            <span key={idx} className="bg-cyan-50 text-cyan-800 font-bold px-1.5 py-0.5 rounded border border-cyan-200">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Card Footer: Tagihan & Touch Actions */}
+                      <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Total Tagihan</span>
+                          <span className="font-black text-slate-900 text-sm">Rp {record.totalAmount.toLocaleString('id-ID')}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={`https://wa.me/${record.cleanPhone}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs flex items-center gap-1 hover:bg-emerald-100 transition-colors"
+                            title="Chat WhatsApp"
+                          >
+                            <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>WA</span>
+                          </a>
+
+                          <button
+                            onClick={() => setSelectedRecord(record)}
+                            className="px-2.5 py-1.5 text-xs font-bold text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>Bukti</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setDeleteTargetRecord(record);
+                              setDeleteConfirmText('');
+                              setDeleteErrorMsg('');
+                            }}
+                            className="p-1.5 rounded-xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center hover:bg-red-100 transition-colors cursor-pointer"
+                            title="Hapus Peserta"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* DESKTOP TABLE VIEW (VISIBLE ON TABLETS & DESKTOPS md:) */}
+            <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
                   Daftar Peserta Pendaftar ({filteredData.length} Data)
