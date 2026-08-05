@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Menu, X, AlertTriangle } from 'lucide-react';
-import { MAINTENANCE_CONFIG } from '../data/webinarData';
+import { MAINTENANCE_CONFIG, getMaintenanceConfig } from '../data/webinarData';
 import logoKemenkes from '../assets/images/logo kemenkes.png';
 import logoKariadi from '../assets/images/Logo_RS_Kariadi_Resmi.png';
 import logoPpni from '../assets/images/logo ppni.png';
