@@ -38,6 +38,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [seriesFilter, setSeriesFilter] = useState<string>('all');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, categoryFilter, seriesFilter]);
+
   // Log Search Term
   const [logSearchTerm, setLogSearchTerm] = useState('');
   const [logStatusFilter, setLogStatusFilter] = useState<string>('all');
@@ -839,342 +847,228 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                 </div>
               </div>
             </div>
+                 {/* PAGINATION CALCULATIONS */}
+            {(() => {
+              const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+              const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+              const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+              const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+              const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-            {/* DATA VIEW (MOBILE CARDS & DESKTOP TABLE) */}
-            
-            {/* MOBILE CARDS VIEW (VISIBLE ON SMARTPHONES < md) */}
-            <div className="block md:hidden space-y-3">
-              {filteredData.length === 0 ? (
-                <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold shadow-sm">
-                  Tidak ada data pendaftaran yang sesuai.
-                </div>
-              ) : (
-                filteredData.map((record) => {
-                  const isApproved = record.status === 'approved_diklat';
-                  const isValid = record.status === 'valid';
-                  const isRejected = record.status === 'rejected';
+              return (
+                <div className="space-y-4">
+                  {/* PETUNJUK KETERANGAN ACC DIKLAT & PAGINATION TOP BAR */}
+                  <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-left">
+                    {/* Legend Indicators for Team Diklat */}
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                      <span className="text-slate-500 font-extrabold uppercase tracking-wider">Keterangan Seri Diklat:</span>
+                      <span className="px-2 py-0.5 bg-indigo-700 text-white rounded-lg flex items-center gap-1 shadow-2xs border border-indigo-800">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-300" />
+                        <span>APPROVED DIKLAT (ACC)</span>
+                      </span>
+                      <span className="px-2 py-0.5 bg-cyan-50 text-cyan-900 border border-cyan-300 rounded-lg flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-cyan-600" />
+                        <span>Belum Approved</span>
+                      </span>
+                    </div>
 
-                  return (
-                    <div key={record.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3.5 text-left">
-                      {/* Card Header: Status Badge & ID/Date */}
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-black text-slate-900 text-xs font-mono">{record.id}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">{record.createdAt}</span>
-                        </div>
-                        
-                        <button
-                          onClick={() => handleToggleStatus(record.id, record.status)}
-                          className={`px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 transition-all cursor-pointer ${
-                            isApproved
-                              ? 'bg-indigo-100 text-indigo-900 border border-indigo-300'
-                              : isValid
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : isRejected
-                              ? 'bg-red-100 text-red-800 border border-red-300'
-                              : 'bg-amber-100 text-amber-800 border border-amber-300'
-                          }`}
+                    {/* Range Summary & Items Per Page Selector */}
+                    <div className="flex flex-wrap items-center gap-3 text-slate-600 font-medium">
+                      <span>
+                        Menampilkan <strong className="text-slate-900 font-black">{filteredData.length > 0 ? startIndex + 1 : 0}</strong> - <strong className="text-slate-900 font-black">{endIndex}</strong> dari <strong className="text-slate-900 font-black">{filteredData.length}</strong> Pendaftar
+                      </span>
+
+                      <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                        <span className="text-[11px] text-slate-500 font-bold">Per Halaman:</span>
+                        <select
+                          value={itemsPerPage}
+                          onChange={(e) => {
+                            setItemsPerPage(Number(e.target.value));
+                            setCurrentPage(1);
+                          }}
+                          className="px-2 py-1 rounded-lg border border-slate-300 font-bold text-slate-800 bg-slate-50 focus:ring-2 focus:ring-cyan-500"
                         >
-                          {isApproved ? (
-                            <>
-                              <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
-                              <span>APPROVE DIKLAT</span>
-                            </>
-                          ) : isValid ? (
-                            <>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>SUDAH MEMBAYAR</span>
-                            </>
-                          ) : isRejected ? (
-                            <>
-                              <XCircle className="w-3.5 h-3.5 text-red-600" />
-                              <span>DITOLAK</span>
-                            </>
-                          ) : (
-                            <>
-                              <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-                              <span>PENDING</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Card Body: Participant Details */}
-                      <div className="space-y-1 text-left">
-                        <span className="font-extrabold text-slate-900 text-sm block leading-snug">{record.fullName}</span>
-                        
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-600 font-medium">
-                          <span className="text-cyan-800 font-mono font-bold">{record.email}</span>
-                          <span className="text-slate-300">•</span>
-                          <span className="font-mono text-slate-600">NIK: {record.nikKtp}</span>
-                        </div>
-
-                        <div className="text-xs text-slate-600 font-medium pt-1">
-                          🏢 <span className="font-bold text-slate-800">{record.installation}</span> ({record.city})
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-1 pt-1.5 text-[10px]">
-                          <span className="px-2 py-0.5 font-extrabold bg-slate-100 text-slate-800 rounded border border-slate-200">
-                            {record.categoryName}
-                          </span>
-                          {record.series.map((s, idx) => (
-                            <span key={idx} className="bg-cyan-50 text-cyan-800 font-bold px-1.5 py-0.5 rounded border border-cyan-200">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Card Status Action Row */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                        {record.status === 'pending' ? (
-                          <>
-                            <button
-                              onClick={() => handleUpdateStatusExplicit(record.id, 'valid')}
-                              className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] rounded-xl shadow-sm flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Set Sudah Membayar</span>
-                            </button>
-                            <button
-                              onClick={() => alert('⚠️ Mohon set "Sudah Membayar" terlebih dahulu sebelum Approve Diklat!')}
-                              className="flex-1 py-1.5 px-2 bg-slate-100 text-slate-400 font-bold text-[11px] rounded-xl border border-slate-200 cursor-not-allowed opacity-60 flex items-center justify-center gap-1"
-                              title="Harus set Sudah Membayar terlebih dahulu"
-                            >
-                              <GraduationCap className="w-3.5 h-3.5" />
-                              <span>Approve Diklat 🔒</span>
-                            </button>
-                          </>
-                        ) : record.status === 'valid' ? (
-                          <button
-                            onClick={() => handleUpdateStatusExplicit(record.id, 'approved_diklat')}
-                            className="w-full py-1.5 px-2 bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold text-[11px] rounded-xl shadow-md flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <GraduationCap className="w-3.5 h-3.5" />
-                            <span>Klik untuk Approve Diklat 🎓</span>
-                          </button>
-                        ) : isApproved ? (
-                          <div className="w-full py-1 px-2 bg-indigo-50 border border-indigo-200 rounded-xl text-center text-indigo-900 font-extrabold text-[11px] flex items-center justify-center gap-1">
-                            <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
-                            <span>Status: Approved Diklat ✨</span>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      {/* Card Footer: Tagihan & Touch Actions */}
-                      <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
-                        <div>
-                          <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Total Tagihan</span>
-                          <span className="font-black text-slate-900 text-sm">Rp {record.totalAmount.toLocaleString('id-ID')}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <a
-                            href={`https://wa.me/${record.cleanPhone}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs flex items-center gap-1 hover:bg-emerald-100 transition-colors"
-                            title="Chat WhatsApp"
-                          >
-                            <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>WA</span>
-                          </a>
-
-                          <button
-                            onClick={() => setSelectedRecord(record)}
-                            className="px-2.5 py-1.5 text-xs font-bold text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            <span>Bukti</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setDeleteTargetRecord(record);
-                              setDeleteConfirmText('');
-                              setDeleteErrorMsg('');
-                            }}
-                            className="p-1.5 rounded-xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center hover:bg-red-100 transition-colors cursor-pointer"
-                            title="Hapus Peserta"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                          <option value={10}>10</option>
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                        </select>
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
+                  </div>
 
-            {/* DESKTOP TABLE VIEW (VISIBLE ON TABLETS & DESKTOPS md:) */}
-            <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
-                  Daftar Peserta Pendaftar ({filteredData.length} Data)
-                </span>
-                <span className="text-[11px] text-slate-500 font-semibold">
-                  * Set "Sudah Membayar" terlebih dahulu untuk membuka akses "Approve Diklat"
-                </span>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-100 text-slate-700 font-extrabold uppercase tracking-wider text-[10px] border-b border-slate-200">
-                    <tr>
-                      <th className="p-3.5 text-center">Status / Validasi & Diklat</th>
-                      <th className="p-3.5">ID & Waktu</th>
-                      <th className="p-3.5">Nama & Email LMS</th>
-                      <th className="p-3.5">NIK KTP</th>
-                      <th className="p-3.5">Asal Instalasi & Kota</th>
-                      <th className="p-3.5">No. HP (WhatsApp)</th>
-                      <th className="p-3.5">Kategori & Seri</th>
-                      <th className="p-3.5 text-right">Total Tagihan</th>
-                      <th className="p-3.5 text-center">Bukti Transfer</th>
-                      <th className="p-3.5 text-center">Aksi Detail</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                    {filteredData.length === 0 ? (
-                      <tr>
-                        <td colSpan={10} className="p-8 text-center text-slate-500 font-semibold">
-                          Tidak ada data pendaftaran yang sesuai.
-                        </td>
-                      </tr>
+                  {/* DATA VIEW (MOBILE CARDS & DESKTOP TABLE) */}
+                  
+                  {/* MOBILE CARDS VIEW (VISIBLE ON SMARTPHONES < md) */}
+                  <div className="block md:hidden space-y-3">
+                    {paginatedData.length === 0 ? (
+                      <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold shadow-sm">
+                        Tidak ada data pendaftaran yang sesuai.
+                      </div>
                     ) : (
-                      filteredData.map((record) => {
+                      paginatedData.map((record) => {
                         const isApproved = record.status === 'approved_diklat';
                         const isValid = record.status === 'valid';
                         const isRejected = record.status === 'rejected';
 
                         return (
-                          <tr key={record.id} className="hover:bg-cyan-50/40 transition-colors">
-                            <td className="p-3.5 text-center space-y-1">
+                          <div key={record.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3.5 text-left">
+                            {/* Card Header: Status Badge & ID/Date */}
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-slate-900 text-xs font-mono">{record.id}</span>
+                                <span className="text-[10px] text-slate-400 font-mono">{record.createdAt}</span>
+                              </div>
+                              
                               <button
                                 onClick={() => handleToggleStatus(record.id, record.status)}
-                                className={`w-full px-2.5 py-1.5 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                className={`px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 transition-all cursor-pointer ${
                                   isApproved
-                                    ? 'bg-indigo-100 text-indigo-900 border border-indigo-300 hover:bg-indigo-200'
+                                    ? 'bg-indigo-100 text-indigo-900 border border-indigo-300'
                                     : isValid
-                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                     : isRejected
-                                    ? 'bg-red-100 text-red-800 border border-red-300 hover:bg-red-200'
-                                    : 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
+                                    ? 'bg-red-100 text-red-800 border border-red-300'
+                                    : 'bg-amber-100 text-amber-800 border border-amber-300'
                                 }`}
                               >
                                 {isApproved ? (
                                   <>
                                     <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
-                                    <span>Approve Diklat</span>
+                                    <span>APPROVE DIKLAT</span>
                                   </>
                                 ) : isValid ? (
                                   <>
                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                    <span>Sudah Membayar</span>
+                                    <span>SUDAH MEMBAYAR</span>
                                   </>
                                 ) : isRejected ? (
                                   <>
                                     <XCircle className="w-3.5 h-3.5 text-red-600" />
-                                    <span>Ditolak</span>
+                                    <span>DITOLAK</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                    <span>Pending</span>
+                                    <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                                    <span>PENDING</span>
                                   </>
                                 )}
                               </button>
+                            </div>
 
-                              {/* Quick Action Button for Approve Diklat if status === valid */}
-                              {isValid && (
+                            {/* Card Body: Participant Details & Per-Series Approved Status */}
+                            <div className="space-y-1 text-left">
+                              <span className="font-extrabold text-slate-900 text-sm block leading-snug">{record.fullName}</span>
+                              
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-600 font-medium">
+                                <span className="text-cyan-800 font-mono font-bold">{record.email}</span>
+                                <span className="text-slate-300">•</span>
+                                <span className="font-mono text-slate-600">NIK: {record.nikKtp}</span>
+                              </div>
+
+                              <div className="text-xs text-slate-600 font-medium pt-1">
+                                🏢 <span className="font-bold text-slate-800">{record.installation}</span> ({record.city})
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[10px]">
+                                <span className="px-2 py-0.5 font-extrabold bg-slate-100 text-slate-800 rounded-lg border border-slate-200">
+                                  {record.categoryName}
+                                </span>
+                                {record.series.map((sTitle, idx) => {
+                                  const approvedList = record.approvedSeries || (record.status === 'approved_diklat' ? record.series : []);
+                                  const isSeriesApproved = approvedList.includes(sTitle);
+
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className={`px-2 py-0.5 rounded-lg font-black flex items-center gap-1 border transition-all ${
+                                        isSeriesApproved
+                                          ? 'bg-indigo-700 text-white border-indigo-800 shadow-2xs'
+                                          : 'bg-cyan-50 text-cyan-900 border-cyan-200 font-bold'
+                                      }`}
+                                      title={isSeriesApproved ? `Webinar ${sTitle}: Approved Diklat 🎓` : `Webinar ${sTitle}: Belum Approved ⏳`}
+                                    >
+                                      {isSeriesApproved ? (
+                                        <>
+                                          <CheckCircle2 className="w-3 h-3 text-emerald-300 shrink-0" />
+                                          <span>{sTitle}</span>
+                                          <span className="bg-emerald-500/30 text-emerald-200 text-[8px] px-1 py-0.2 rounded font-mono uppercase">
+                                            ACC
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Clock className="w-2.5 h-2.5 text-cyan-600 shrink-0" />
+                                          <span>{sTitle}</span>
+                                        </>
+                                      )}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Card Status Action Row */}
+                            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                              {record.status === 'pending' ? (
+                                <>
+                                  <button
+                                    onClick={() => handleUpdateStatusExplicit(record.id, 'valid')}
+                                    className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] rounded-xl shadow-sm flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>Set Sudah Membayar</span>
+                                  </button>
+                                  <button
+                                    onClick={() => alert('⚠️ Mohon set "Sudah Membayar" terlebih dahulu sebelum Approve Diklat!')}
+                                    className="flex-1 py-1.5 px-2 bg-slate-100 text-slate-400 font-bold text-[11px] rounded-xl border border-slate-200 cursor-not-allowed opacity-60 flex items-center justify-center gap-1"
+                                    title="Harus set Sudah Membayar terlebih dahulu"
+                                  >
+                                    <GraduationCap className="w-3.5 h-3.5" />
+                                    <span>Approve Diklat 🔒</span>
+                                  </button>
+                                </>
+                              ) : record.status === 'valid' ? (
                                 <button
                                   onClick={() => handleUpdateStatusExplicit(record.id, 'approved_diklat')}
-                                  className="w-full px-2 py-1 bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold text-[10px] rounded-lg shadow-sm flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                                  title="Klik untuk Approve Diklat"
+                                  className="w-full py-1.5 px-2 bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold text-[11px] rounded-xl shadow-md flex items-center justify-center gap-1 transition-colors cursor-pointer"
                                 >
-                                  <GraduationCap className="w-3 h-3" />
-                                  <span>Approve Diklat 🎓</span>
+                                  <GraduationCap className="w-3.5 h-3.5" />
+                                  <span>Klik untuk Approve Diklat 🎓</span>
                                 </button>
-                              )}
+                              ) : isApproved ? (
+                                <div className="w-full py-1 px-2 bg-indigo-50 border border-indigo-200 rounded-xl text-center text-indigo-900 font-extrabold text-[11px] flex items-center justify-center gap-1">
+                                  <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
+                                  <span>Status: Approved Diklat ✨</span>
+                                </div>
+                              ) : null}
+                            </div>
 
-                              {record.status === 'pending' && (
-                                <button
-                                  onClick={() => alert('⚠️ Mohon set "Sudah Membayar" terlebih dahulu sebelum Approve Diklat!')}
-                                  className="w-full px-2 py-1 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-lg border border-slate-200 cursor-not-allowed opacity-60 flex items-center justify-center gap-1"
-                                  title="Harus set Sudah Membayar terlebih dahulu"
-                                >
-                                  <GraduationCap className="w-3 h-3" />
-                                  <span>Approve Diklat 🔒</span>
-                                </button>
-                              )}
-                            </td>
-
-                            <td className="p-3.5 font-mono text-[11px]">
-                              <span className="font-bold text-slate-900 block">{record.id}</span>
-                              <span className="text-slate-400 text-[10px] block">{record.createdAt}</span>
-                            </td>
-
-                            <td className="p-3.5">
-                              <span className="font-extrabold text-slate-900 block leading-snug">{record.fullName}</span>
-                              <span className="text-cyan-800 text-[11px] font-mono block">{record.email}</span>
-                            </td>
-
-                            <td className="p-3.5 font-mono text-slate-800 font-semibold">
-                              {record.nikKtp}
-                            </td>
-
-                            <td className="p-3.5">
-                              <span className="font-bold text-slate-800 block">{record.installation}</span>
-                              <span className="text-slate-500 text-[11px] block">{record.city}</span>
-                            </td>
-
-                            <td className="p-3.5">
-                              <a
-                                href={`https://wa.me/${record.cleanPhone}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-200 transition-colors font-mono"
-                              >
-                                <Phone className="w-3 h-3 text-emerald-600" />
-                                <span>{record.phone}</span>
-                              </a>
-                            </td>
-
-                            <td className="p-3.5 space-y-1">
-                              <span className="inline-block px-2 py-0.5 text-[10px] font-extrabold bg-slate-100 text-slate-800 rounded border border-slate-200">
-                                {record.categoryName}
-                              </span>
-                              <div className="flex flex-wrap gap-1 text-[10px] font-bold text-cyan-800">
-                                {record.series.map((s, idx) => (
-                                  <span key={idx} className="bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-200">
-                                    {s}
-                                  </span>
-                                ))}
+                            {/* Card Footer: Tagihan & Touch Actions */}
+                            <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+                              <div>
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Total Tagihan</span>
+                                <span className="font-black text-slate-900 text-sm">Rp {record.totalAmount.toLocaleString('id-ID')}</span>
                               </div>
-                            </td>
 
-                            <td className="p-3.5 text-right font-extrabold text-slate-900 text-xs">
-                              Rp {record.totalAmount.toLocaleString('id-ID')}
-                            </td>
+                              <div className="flex items-center gap-1.5">
+                                <a
+                                  href={`https://wa.me/${record.cleanPhone}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs flex items-center gap-1 hover:bg-emerald-100 transition-colors"
+                                  title="Chat WhatsApp"
+                                >
+                                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>WA</span>
+                                </a>
 
-                            <td className="p-3.5 text-center">
-                              <button
-                                onClick={() => setSelectedRecord(record)}
-                                className="px-2.5 py-1 text-[11px] font-bold text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                              >
-                                <FileText className="w-3.5 h-3.5" />
-                                <span>{record.paymentProofName ? 'Lihat Bukti' : 'Belum Ada'}</span>
-                              </button>
-                            </td>
-
-                            <td className="p-3.5 text-center">
-                              <div className="flex items-center justify-center gap-1.5">
                                 <button
                                   onClick={() => setSelectedRecord(record)}
-                                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
-                                  title="Lihat Detail & Bukti"
+                                  className="px-2.5 py-1.5 text-xs font-bold text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
                                 >
-                                  <Eye className="w-4 h-4" />
+                                  <FileText className="w-3.5 h-3.5" />
+                                  <span>Bukti</span>
                                 </button>
 
                                 <button
@@ -1183,22 +1077,308 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                                     setDeleteConfirmText('');
                                     setDeleteErrorMsg('');
                                   }}
-                                  className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200 transition-colors cursor-pointer"
-                                  title="Hapus Pendaftar Ini"
+                                  className="p-1.5 rounded-xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center hover:bg-red-100 transition-colors cursor-pointer"
+                                  title="Hapus Peserta"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
-                            </td>
-                          </tr>
+                            </div>
+                          </div>
                         );
                       })
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </div>
 
+                  {/* DESKTOP TABLE VIEW (VISIBLE ON TABLETS & DESKTOPS md:) */}
+                  <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden text-left">
+                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                      <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                        Daftar Peserta Pendaftar ({filteredData.length} Total Data)
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-semibold">
+                        * Tanda <strong className="text-indigo-700">APPROVED (ACC)</strong> menunjukkan seri webinar yang sudah disetujui tim Diklat
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-100 text-slate-700 font-extrabold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                          <tr>
+                            <th className="p-3.5 text-center">Status / Validasi & Diklat</th>
+                            <th className="p-3.5">ID & Waktu</th>
+                            <th className="p-3.5">Nama & Email LMS</th>
+                            <th className="p-3.5">NIK KTP</th>
+                            <th className="p-3.5">Asal Instalasi & Kota</th>
+                            <th className="p-3.5">No. HP (WhatsApp)</th>
+                            <th className="p-3.5">Kategori & Status Per Seri Diklat</th>
+                            <th className="p-3.5 text-right">Total Tagihan</th>
+                            <th className="p-3.5 text-center">Bukti Transfer</th>
+                            <th className="p-3.5 text-center">Aksi Detail</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                          {paginatedData.length === 0 ? (
+                            <tr>
+                              <td colSpan={10} className="p-8 text-center text-slate-500 font-semibold">
+                                Tidak ada data pendaftaran yang sesuai.
+                              </td>
+                            </tr>
+                          ) : (
+                            paginatedData.map((record) => {
+                              const isApproved = record.status === 'approved_diklat';
+                              const isValid = record.status === 'valid';
+                              const isRejected = record.status === 'rejected';
+
+                              return (
+                                <tr key={record.id} className="hover:bg-cyan-50/40 transition-colors">
+                                  <td className="p-3.5 text-center space-y-1">
+                                    <button
+                                      onClick={() => handleToggleStatus(record.id, record.status)}
+                                      className={`w-full px-2.5 py-1.5 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        isApproved
+                                          ? 'bg-indigo-100 text-indigo-900 border border-indigo-300 hover:bg-indigo-200'
+                                          : isValid
+                                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                                          : isRejected
+                                          ? 'bg-red-100 text-red-800 border border-red-300 hover:bg-red-200'
+                                          : 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
+                                      }`}
+                                    >
+                                      {isApproved ? (
+                                        <>
+                                          <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
+                                          <span>Approve Diklat</span>
+                                        </>
+                                      ) : isValid ? (
+                                        <>
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                          <span>Sudah Membayar</span>
+                                        </>
+                                      ) : isRejected ? (
+                                        <>
+                                          <XCircle className="w-3.5 h-3.5 text-red-600" />
+                                          <span>Ditolak</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                          <span>Pending</span>
+                                        </>
+                                      )}
+                                    </button>
+
+                                    {/* Quick Action Button for Approve Diklat if status === valid */}
+                                    {isValid && (
+                                      <button
+                                        onClick={() => handleUpdateStatusExplicit(record.id, 'approved_diklat')}
+                                        className="w-full px-2 py-1 bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold text-[10px] rounded-lg shadow-sm flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                        title="Klik untuk Approve Diklat"
+                                      >
+                                        <GraduationCap className="w-3 h-3" />
+                                        <span>Approve Diklat 🎓</span>
+                                      </button>
+                                    )}
+
+                                    {record.status === 'pending' && (
+                                      <button
+                                        onClick={() => alert('⚠️ Mohon set "Sudah Membayar" terlebih dahulu sebelum Approve Diklat!')}
+                                        className="w-full px-2 py-1 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-lg border border-slate-200 cursor-not-allowed opacity-60 flex items-center justify-center gap-1"
+                                        title="Harus set Sudah Membayar terlebih dahulu"
+                                      >
+                                        <GraduationCap className="w-3 h-3" />
+                                        <span>Approve Diklat 🔒</span>
+                                      </button>
+                                    )}
+                                  </td>
+
+                                  <td className="p-3.5 font-mono text-[11px]">
+                                    <span className="font-bold text-slate-900 block">{record.id}</span>
+                                    <span className="text-slate-400 text-[10px] block">{record.createdAt}</span>
+                                  </td>
+
+                                  <td className="p-3.5">
+                                    <span className="font-extrabold text-slate-900 block leading-snug">{record.fullName}</span>
+                                    <span className="text-cyan-800 text-[11px] font-mono block">{record.email}</span>
+                                  </td>
+
+                                  <td className="p-3.5 font-mono text-slate-800 font-semibold">
+                                    {record.nikKtp}
+                                  </td>
+
+                                  <td className="p-3.5">
+                                    <span className="font-bold text-slate-800 block">{record.installation}</span>
+                                    <span className="text-slate-500 text-[11px] block">{record.city}</span>
+                                  </td>
+
+                                  <td className="p-3.5">
+                                    <a
+                                      href={`https://wa.me/${record.cleanPhone}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-200 transition-colors font-mono"
+                                    >
+                                      <Phone className="w-3 h-3 text-emerald-600" />
+                                      <span>{record.phone}</span>
+                                    </a>
+                                  </td>
+
+                                  {/* PER-SERIES STATUS BADGES COLUMN FOR TEAM DIKLAT */}
+                                  <td className="p-3.5 space-y-1.5">
+                                    <span className="inline-block px-2 py-0.5 text-[10px] font-extrabold bg-slate-100 text-slate-800 rounded border border-slate-200">
+                                      {record.categoryName}
+                                    </span>
+                                    
+                                    <div className="space-y-1">
+                                      {record.series.map((sTitle, idx) => {
+                                        const approvedList = record.approvedSeries || (record.status === 'approved_diklat' ? record.series : []);
+                                        const isSeriesApproved = approvedList.includes(sTitle);
+
+                                        return (
+                                          <div
+                                            key={idx}
+                                            className={`px-2 py-0.5 rounded-lg text-[10px] font-black flex items-center justify-between gap-1 shadow-2xs border transition-all ${
+                                              isSeriesApproved
+                                                ? 'bg-indigo-700 text-white border-indigo-800 shadow-indigo-500/20'
+                                                : 'bg-cyan-50 text-cyan-900 border-cyan-300 font-bold'
+                                            }`}
+                                            title={isSeriesApproved ? `Webinar ${sTitle}: APPROVED Diklat 🎓` : `Webinar ${sTitle}: Belum Approved Diklat ⏳`}
+                                          >
+                                            <div className="flex items-center gap-1">
+                                              {isSeriesApproved ? (
+                                                <CheckCircle2 className="w-3 h-3 text-emerald-300 shrink-0" />
+                                              ) : (
+                                                <Clock className="w-2.5 h-2.5 text-cyan-600 shrink-0" />
+                                              )}
+                                              <span>{sTitle}</span>
+                                            </div>
+
+                                            <span className={`text-[8px] px-1 py-0.2 rounded font-mono font-bold uppercase ${
+                                              isSeriesApproved
+                                                ? 'bg-emerald-500/30 text-emerald-200'
+                                                : 'bg-slate-200/60 text-slate-600'
+                                            }`}>
+                                              {isSeriesApproved ? 'APPROVED' : 'BELUM'}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </td>
+
+                                  <td className="p-3.5 text-right font-extrabold text-slate-900 text-xs">
+                                    Rp {record.totalAmount.toLocaleString('id-ID')}
+                                  </td>
+
+                                  <td className="p-3.5 text-center">
+                                    <button
+                                      onClick={() => setSelectedRecord(record)}
+                                      className="px-2.5 py-1 text-[11px] font-bold text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <FileText className="w-3.5 h-3.5" />
+                                      <span>{record.paymentProofName ? 'Lihat Bukti' : 'Belum Ada'}</span>
+                                    </button>
+                                  </td>
+
+                                  <td className="p-3.5 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <button
+                                        onClick={() => setSelectedRecord(record)}
+                                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                                        title="Detail & Verifikasi"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                      </button>
+                                      
+                                      <button
+                                        onClick={() => {
+                                          setDeleteTargetRecord(record);
+                                          setDeleteConfirmText('');
+                                          setDeleteErrorMsg('');
+                                        }}
+                                        className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
+                                        title="Hapus Peserta"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* PAGINATION BOTTOM CONTROLS */}
+                  {totalPages > 1 && (
+                    <div className="bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-2 text-xs">
+                      <span className="text-slate-500 font-medium text-[11px] hidden sm:inline">
+                        Halaman <strong>{safeCurrentPage}</strong> dari <strong>{totalPages}</strong> (Total {filteredData.length} Data)
+                      </span>
+
+                      <div className="flex items-center gap-1 mx-auto sm:mx-0">
+                        <button
+                          onClick={() => setCurrentPage(1)}
+                          disabled={safeCurrentPage === 1}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all ${
+                            safeCurrentPage === 1
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer'
+                          }`}
+                          title="Halaman Pertama"
+                        >
+                          « Awal
+                        </button>
+
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={safeCurrentPage === 1}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all ${
+                            safeCurrentPage === 1
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer'
+                          }`}
+                        >
+                          ‹ Sebelum
+                        </button>
+
+                        <span className="px-3.5 py-1.5 bg-cyan-700 text-white rounded-xl font-black text-xs shadow-sm">
+                          {safeCurrentPage} / {totalPages}
+                        </span>
+
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={safeCurrentPage === totalPages}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all ${
+                            safeCurrentPage === totalPages
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer'
+                          }`}
+                        >
+                          Lanjut ›
+                        </button>
+
+                        <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={safeCurrentPage === totalPages}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all ${
+                            safeCurrentPage === totalPages
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer'
+                          }`}
+                          title="Halaman Akhir"
+                        >
+                          Akhir »
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
