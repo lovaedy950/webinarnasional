@@ -408,9 +408,16 @@ export const updateRegistrationStatus = async (id: string, status: 'pending' | '
 
   const updated = current.map(item => {
     if (item.id === id) {
+      const approvedSeries = status === 'approved_diklat' 
+        ? item.series 
+        : (status === 'pending' || status === 'rejected') 
+        ? [] 
+        : item.approvedSeries;
+
       return {
         ...item,
         status,
+        approvedSeries,
         verifiedAt: verifiedAt || item.verifiedAt,
         notes: notes !== undefined ? notes : item.notes
       };
@@ -425,6 +432,46 @@ export const updateRegistrationStatus = async (id: string, status: 'pending' | '
       status,
       ...(notes !== undefined ? { notes } : {})
     }).eq('id', id);
+  } catch (err) {}
+
+  return updated;
+};
+
+export const updateRegistrationApprovedSeries = async (id: string, approvedSeries: string[]): Promise<RegistrationRecord[]> => {
+  const current = getRegistrations();
+
+  const updated = current.map(item => {
+    if (item.id === id) {
+      const isAllApproved = approvedSeries.length >= item.series.length;
+      let newStatus: 'pending' | 'valid' | 'approved_diklat' | 'rejected' = item.status;
+
+      if (approvedSeries.length > 0) {
+        newStatus = 'approved_diklat';
+      } else if (item.status === 'approved_diklat') {
+        newStatus = 'valid';
+      }
+
+      return {
+        ...item,
+        status: newStatus,
+        approvedSeries,
+        verifiedAt: item.verifiedAt || new Date().toISOString().replace('T', ' ').slice(0, 16)
+      };
+    }
+    return item;
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+  // Sync to Supabase
+  try {
+    const target = updated.find(r => r.id === id);
+    if (target) {
+      await supabase.from('registrations').update({
+        status: target.status,
+        notes: `[APPROVED_SERIES:${approvedSeries.join(',')}] ${target.notes || ''}`
+      }).eq('id', id);
+    }
   } catch (err) {}
 
   return updated;

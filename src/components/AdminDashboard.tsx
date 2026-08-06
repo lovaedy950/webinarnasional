@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RegistrationRecord } from '../types';
 import { 
-  getRegistrations, fetchRegistrationsFromDB, updateRegistrationStatus, exportToCSV, 
+  getRegistrations, fetchRegistrationsFromDB, updateRegistrationStatus, updateRegistrationApprovedSeries, exportToCSV, 
   getSubmissionLogs, fetchSubmissionLogsFromDB, retrySubmissionToDB, deleteRegistration, SubmissionLog 
 } from '../data/registrationStore';
 import { getMaintenanceConfig, saveMaintenanceConfig, MaintenanceConfig } from '../data/webinarData';
@@ -132,6 +132,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
     setRegistrations(updated);
     if (selectedRecord && selectedRecord.id === id) {
       setSelectedRecord(updated.find(r => r.id === id) || null);
+    }
+  };
+
+  const handleToggleSeriesDiklat = async (record: RegistrationRecord, seriesTitle: string) => {
+    if (record.status === 'pending') {
+      alert('⚠️ Tidak dapat Approve Diklat! Mohon set status "Sudah Membayar" terlebih dahulu.');
+      return;
+    }
+
+    const currentApproved = record.approvedSeries || (record.status === 'approved_diklat' ? record.series : []);
+    let newApproved: string[] = [];
+
+    if (currentApproved.includes(seriesTitle)) {
+      newApproved = currentApproved.filter(s => s !== seriesTitle);
+    } else {
+      newApproved = [...currentApproved, seriesTitle];
+    }
+
+    const updated = await updateRegistrationApprovedSeries(record.id, newApproved);
+    setRegistrations(updated);
+    if (selectedRecord && selectedRecord.id === record.id) {
+      setSelectedRecord(updated.find(r => r.id === record.id) || null);
+    }
+  };
+
+  const handleApproveAllSeriesDiklat = async (record: RegistrationRecord) => {
+    if (record.status === 'pending') {
+      alert('⚠️ Tidak dapat Approve Diklat! Mohon set status "Sudah Membayar" terlebih dahulu.');
+      return;
+    }
+
+    const updated = await updateRegistrationApprovedSeries(record.id, record.series);
+    setRegistrations(updated);
+    if (selectedRecord && selectedRecord.id === record.id) {
+      setSelectedRecord(updated.find(r => r.id === record.id) || null);
     }
   };
 
@@ -1477,6 +1512,68 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                     <span>⚠️ ATURAN ALUR: Tombol <strong>"Approve Diklat"</strong> terkunci. Klik tombol <strong>"Sudah Membayar"</strong> terlebih dahulu untuk membuka akses Approve Diklat.</span>
                   </div>
                 )}
+              </div>
+
+              {/* PER-SERIES DIKLAT APPROVAL SECTION */}
+              <div className="space-y-3 pt-3 border-t border-slate-200 text-left">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider block">
+                    🎓 Approve Diklat Per Seri Webinar Terpilih ({selectedRecord.series.length} Seri):
+                  </span>
+                  {selectedRecord.status !== 'pending' && (
+                    <button
+                      type="button"
+                      onClick={() => handleApproveAllSeriesDiklat(selectedRecord)}
+                      className="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 underline cursor-pointer"
+                    >
+                      Approve Semua ({selectedRecord.series.length} Seri)
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {selectedRecord.series.map((sTitle) => {
+                    const approvedList = selectedRecord.approvedSeries || (selectedRecord.status === 'approved_diklat' ? selectedRecord.series : []);
+                    const isSeriesApproved = approvedList.includes(sTitle);
+                    const isPending = selectedRecord.status === 'pending';
+
+                    return (
+                      <button
+                        key={sTitle}
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => handleToggleSeriesDiklat(selectedRecord, sTitle)}
+                        className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                          isPending
+                            ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                            : isSeriesApproved
+                            ? 'bg-indigo-50 border-indigo-300 text-indigo-950 font-bold shadow-sm ring-1 ring-indigo-200 cursor-pointer'
+                            : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 cursor-pointer'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-base font-black">
+                            {isSeriesApproved ? '✅' : '⏳'}
+                          </span>
+                          <div>
+                            <span className="text-xs font-black block">Webinar {sTitle}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              {isSeriesApproved ? 'Disetujui Diklat' : 'Belum Approved'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold shadow-sm ${
+                          isSeriesApproved
+                            ? 'bg-indigo-700 text-white'
+                            : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          {isSeriesApproved ? 'APPROVED 🎓' : 'APPROVE'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
