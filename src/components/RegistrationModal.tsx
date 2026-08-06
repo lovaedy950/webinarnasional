@@ -39,6 +39,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [proofUrl, setProofUrl] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showNominalConfirmModal, setShowNominalConfirmModal] = useState(false);
+  const [isNominalChecked, setIsNominalChecked] = useState(false);
 
   if (!isOpen) return null;
 
@@ -250,14 +252,21 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setStep(2);
   };
 
-  // Step 2 -> Step 3 Validation & Submit
-  const handleConfirmPaymentAndUpload = async (e: React.FormEvent) => {
+  // Step 2 Form Submit -> Open Nominal Confirmation Modal
+  const handleOpenNominalConfirmModal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fileName) {
-      setErrorMsg('Mohon unggah foto/PDF bukti transfer pembayaran Anda.');
+      setErrorMsg('⚠️ Mohon unggah foto/PDF bukti transfer pembayaran Anda terlebih dahulu.');
       return;
     }
     setErrorMsg('');
+    setIsNominalChecked(false);
+    setShowNominalConfirmModal(true);
+  };
+
+  // Execute Final Submit to Database after Nominal Confirmed
+  const handleExecuteSubmit = async () => {
+    setShowNominalConfirmModal(false);
     setIsSubmitting(true);
 
     try {
@@ -282,7 +291,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         onSuccessToast('✅ Pendaftaran & Bukti Transfer Anda berhasil dikirimkan ke database!');
       } else {
         const errorDetail = typeof res.message === 'string' ? res.message : JSON.stringify(res.message || res);
-        setErrorMsg(`⚠️ Gagal menyimpan ke database MySQL Hostinger: ${errorDetail}`);
+        setErrorMsg(`⚠️ Gagal menyimpan ke database Supabase: ${errorDetail}`);
       }
     } catch (err: any) {
       const errorDetail = typeof err?.message === 'string' ? err.message : String(err);
@@ -632,7 +641,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
             {/* STEP 2: Total Payment, Copy Bank Account & Upload Proof */}
             {step === 2 && (
-              <form onSubmit={handleConfirmPaymentAndUpload} className="space-y-6">
+              <form onSubmit={handleOpenNominalConfirmModal} className="space-y-6">
                 
                 <div className="flex items-center justify-between">
                   <button
@@ -714,6 +723,21 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       <Copy className="w-4 h-4" />
                       <span>SALIN NO. REKENING</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Warning Callout: Nominal Transfer Requirement */}
+                <div className="p-4 bg-amber-50/90 border border-amber-300 rounded-2xl text-slate-800 text-xs font-semibold flex items-start gap-3 shadow-sm text-left">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <AlertTriangle className="w-4.5 h-4.5 text-amber-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="font-black text-amber-950 text-xs uppercase tracking-wide block">
+                      SYARAT VERIFIKASI PEMBAYARAN:
+                    </span>
+                    <p className="text-[11px] leading-relaxed text-amber-900 font-medium">
+                      Bukti transfer <span className="font-black text-red-700 underline">WAJIB SESUAI</span> dengan total nominal tagihan (<span className="font-extrabold text-slate-900 font-mono">Rp {totalAmount.toLocaleString('id-ID')}</span>). Apabila nominal transfer tidak sesuai (kurang/berbeda), maka akan <span className="font-bold text-red-800">MENGHAMBAT PROSES VERIFIKASI</span> pendaftaran Anda.
+                    </p>
                   </div>
                 </div>
 
@@ -893,6 +917,106 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   className="w-full py-3.5 px-4 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl shadow-lg shadow-emerald-600/20 transition-colors cursor-pointer"
                 >
                   Lanjutkan (Saya Perawat RSDK)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL KONFIRMASI NOMINAL TRANSFER */}
+        {showNominalConfirmModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
+            <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-lg w-full my-auto max-h-[92vh] overflow-y-auto shadow-2xl border border-amber-200 text-left space-y-4 animate-scaleUp">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-900 leading-snug">
+                      Konfirmasi Nominal Transfer
+                    </h3>
+                    <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">
+                      Syarat Verifikasi Pendaftaran
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNominalConfirmModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Amount Highlight Card */}
+              <div className="bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 flex items-center justify-between shadow-sm">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Tagihan Pilihan Anda:</span>
+                  <span className="text-2xl font-black text-emerald-400">Rp {totalAmount.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-cyan-300 font-bold block">{selectedSeries.length} Seri Webinar</span>
+                  <span className="text-[10px] text-slate-400 font-semibold">{currentCat.role}</span>
+                </div>
+              </div>
+
+              {/* Warning Message Box */}
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2 text-slate-800 text-xs leading-relaxed">
+                <div className="flex items-center gap-2 font-extrabold text-amber-900 text-xs uppercase tracking-wide">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>PERATURAN PENTING VERIFIKASI PANITIA:</span>
+                </div>
+                <p className="text-slate-700 font-medium">
+                  Bukti transfer yang diunggah <span className="font-black text-red-700 underline">WAJIB SESUAI</span> dengan total nominal tagihan <span className="font-extrabold text-slate-900">Rp {totalAmount.toLocaleString('id-ID')}</span>.
+                </p>
+                <div className="bg-red-50 p-3 rounded-xl border border-red-200 text-[11px] text-red-800 font-bold leading-snug">
+                  ⚠️ Apabila nominal transfer pada bukti tidak sesuai (kurang atau berbeda), maka akan MENGHAMBAT dan MEMPERLAMBAT proses verifikasi pendaftaran Anda oleh panitia.
+                </div>
+              </div>
+
+              {/* Confirmation Checkbox */}
+              <label className="flex items-start gap-3 p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={isNominalChecked}
+                  onChange={(e) => setIsNominalChecked(e.target.checked)}
+                  className="w-5 h-5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 mt-0.5 shrink-0"
+                />
+                <span className="text-xs font-bold text-slate-800 leading-relaxed">
+                  Saya mengonfirmasi bahwa nilai transfer pada bukti pembayaran saya sudah <span className="text-emerald-700 underline">SESUAI DENGAN NOMINAL Rp {totalAmount.toLocaleString('id-ID')}</span>.
+                </span>
+              </label>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowNominalConfirmModal(false)}
+                  className="w-full sm:w-1/2 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition-colors cursor-pointer text-center"
+                >
+                  Periksa Kembali Bukti
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!isNominalChecked || isSubmitting}
+                  onClick={handleExecuteSubmit}
+                  className="w-full sm:w-1/2 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Mengirim...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Ya, Sesuai & Kirim</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
