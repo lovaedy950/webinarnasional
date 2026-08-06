@@ -20,44 +20,41 @@ export interface SubmissionLog {
   isResolved: boolean;
 }
 
-export const INITIAL_MOCK_REGISTRATIONS: RegistrationRecord[] = [
-  {
-    id: 'REG-101-001',
-    createdAt: '2026-08-03 09:15',
-    fullName: 'Ns. Hendra Wijaya, S.Kep',
-    email: 'hendra.wijaya@kariadi.co.id',
-    nikKtp: '3374011208920003',
-    installation: 'Ruang ICU RSUP Dr. Kariadi',
-    phone: '0812-3456-7891',
-    cleanPhone: '6281234567891',
-    city: 'Kota Semarang',
-    categoryId: 'perawat_rsdk',
-    categoryName: 'Perawat RSDK',
-    series: ['ONKOLOGI', 'JANTUNG'],
-    totalAmount: 20000,
-    paymentProofName: 'bukti_tf_hendra_kariadi.jpg',
-    status: 'valid',
-    verifiedAt: '2026-08-03 09:40'
-  }
-];
-
+export const INITIAL_MOCK_REGISTRATIONS: RegistrationRecord[] = [];
 export const INITIAL_MOCK_LOGS: SubmissionLog[] = [];
 
+let memoryRegistrationsCache: RegistrationRecord[] = [];
+
 export const getRegistrations = (): RegistrationRecord[] => {
+  if (memoryRegistrationsCache.length > 0) {
+    return memoryRegistrationsCache;
+  }
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MOCK_REGISTRATIONS));
-      return INITIAL_MOCK_REGISTRATIONS;
-    }
-    const parsed = JSON.parse(data);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        memoryRegistrationsCache = parsed;
+        return parsed;
+      }
     }
   } catch (e) {
     console.error('Failed to parse registrations from localStorage', e);
   }
-  return INITIAL_MOCK_REGISTRATIONS;
+  return memoryRegistrationsCache;
+};
+
+export const setMemoryRegistrations = (records: RegistrationRecord[]) => {
+  memoryRegistrationsCache = records;
+  try {
+    const safeForStorage = records.map(r => ({
+      ...r,
+      paymentProofUrl: r.paymentProofUrl && r.paymentProofUrl.startsWith('data:') ? '' : r.paymentProofUrl
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeForStorage));
+  } catch (stErr) {
+    console.warn('LocalStorage quota exceeded, kept in memory store:', stErr);
+  }
 };
 
 // Fetch all registrations from Supabase Database
@@ -99,9 +96,7 @@ export const fetchRegistrationsFromDB = async (): Promise<RegistrationRecord[]> 
       );
 
       if (records.length > 0) {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        } catch (stErr) {}
+        setMemoryRegistrations(records);
         return records;
       }
     }
@@ -424,7 +419,7 @@ export const updateRegistrationStatus = async (id: string, status: 'pending' | '
     }
     return item;
   });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  setMemoryRegistrations(updated);
 
   // Sync to Supabase
   try {
@@ -461,7 +456,7 @@ export const updateRegistrationApprovedSeries = async (id: string, approvedSerie
     return item;
   });
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  setMemoryRegistrations(updated);
 
   // Sync to Supabase
   try {
@@ -490,7 +485,7 @@ export const updateRegistrationRecordByAdmin = async (id: string, updatedFields:
     return item;
   });
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  setMemoryRegistrations(updated);
 
   // Sync to Supabase
   try {
