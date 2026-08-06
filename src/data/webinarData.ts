@@ -100,6 +100,7 @@ export const WEBINAR_SERIES_DATA: WebinarSeries[] = [
     speakersCount: 4,
     moderatorsCount: 1,
     contactPerson: CONTACT_PERSONS_KHUSUS[0],
+    waGroupLink: 'https://chat.whatsapp.com/LR7sAKvlvWP6FEm3rlvM8P',
     speakers: [
       { name: 'dr. Eko Adhi Pangarsa, Sp.PD-KHOM', role: 'Konsultan Hematologi Onkologi Medik', institution: 'RSUP Dr. Kariadi' },
       { name: 'dr. Muchlis, Sp.A(K)', role: 'Konsultan Hematologi Onkologi Anak', institution: 'RSUP Dr. Kariadi' },
@@ -131,6 +132,7 @@ export const WEBINAR_SERIES_DATA: WebinarSeries[] = [
     speakersCount: 4,
     moderatorsCount: 1,
     contactPerson: CONTACT_PERSONS_KHUSUS[1],
+    waGroupLink: 'https://chat.whatsapp.com/IHDDx3Mrlq6JBUTa3dATwi',
     speakers: [
       { name: 'dr. Aditya Rahman', role: 'Konsultan Bedah Toraks Kardiovaskular', institution: 'RSUP Dr. Kariadi' },
       { name: 'dr. Pipin Ardhianto, Sp.JP(K), FIHA', role: 'Konsultan Kardiologi & Pembuluh Darah', institution: 'RSUP Dr. Kariadi' },
@@ -162,6 +164,7 @@ export const WEBINAR_SERIES_DATA: WebinarSeries[] = [
     speakersCount: 4,
     moderatorsCount: 1,
     contactPerson: CONTACT_PERSONS_KHUSUS[2],
+    waGroupLink: 'https://chat.whatsapp.com/CfEni7dgG5iGNgR27bJixg',
     speakers: [
       { name: 'dr. Dodik Tugasworo, Sp.N(K)', role: 'Konsultan Neurologi & Stroke', institution: 'RSUP Dr. Kariadi' },
       { name: 'dr. Rahmi Ardhini, Sp.N(K)', role: 'Konsultan Neurointervensi', institution: 'RSUP Dr. Kariadi' },
@@ -193,6 +196,7 @@ export const WEBINAR_SERIES_DATA: WebinarSeries[] = [
     speakersCount: 5,
     moderatorsCount: 1,
     contactPerson: CONTACT_PERSONS_KHUSUS[3],
+    waGroupLink: 'https://chat.whatsapp.com/Bi7RW2ZekSZAwhxag79IDX',
     speakers: [
       { name: 'dr. Zuhristiyan, Sp.PD-KGH', role: 'Konsultan Ginjal Hipertensi', institution: 'RSUP Dr. Kariadi' },
       { name: 'dr. Eriawan, Sp.U(K)', role: 'Konsultan Urologi Transplantasi', institution: 'RSUP Dr. Kariadi' },

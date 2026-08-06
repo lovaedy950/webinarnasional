@@ -29,6 +29,7 @@ export interface WebinarSeries {
   speakers: Speaker[];
   moderators: Speaker[];
   contactPerson?: ContactPerson;
+  waGroupLink?: string;
   agenda: {
     time: string;
     topic: string;
