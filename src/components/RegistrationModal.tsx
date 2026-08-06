@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PRICING_CATEGORIES, BANK_DETAILS, WEBINAR_SERIES_DATA, getMaintenanceConfig } from '../data/webinarData';
 import { saveRegistration } from '../data/registrationStore';
-import { X, CheckCircle2, Copy, UploadCloud, AlertCircle, ArrowRight, ShieldCheck, CreditCard, Building2, User, Mail, Phone, MapPin, FileText, ArrowLeft, RefreshCw, AlertTriangle, Clock, Wrench } from 'lucide-react';
+import { X, CheckCircle2, Copy, UploadCloud, AlertCircle, ArrowRight, ShieldCheck, CreditCard, Building2, User, Mail, Phone, MapPin, FileText, ArrowLeft, RefreshCw, AlertTriangle, Clock, Wrench, MessageSquare, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface RegistrationModalProps {
@@ -299,6 +299,49 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCopyAnnouncementText = () => {
+    const textToCopy = `Selamat! Pendaftaran Berhasil Dilakukan ✨
+
+Yth. Bapak/Ibu Peserta (${fullName}),
+
+Terima kasih telah melakukan pendaftaran untuk rangkaian Webinar Nasional.
+
+Silakan bergabung ke dalam grup WhatsApp resmi sesuai dengan topik webinar yang Anda pilih melalui tautan di bawah ini:
+
+🩺 1. Webinar Nasional Uronefro
+🔗 https://chat.whatsapp.com/Bi7RW2ZekSZAwhxag79IDX
+
+🎗️ 2. Webinar Nasional Onkologi
+🔗 https://chat.whatsapp.com/LR7sAKvlvWP6FEm3rlvM8P
+
+🧠 3. Webinar Nasional Neuro
+🔗 https://chat.whatsapp.com/CfEni7dgG5iGNgR27bJixg
+
+❤️ 4. Webinar Nasional Jantung
+🔗 https://chat.whatsapp.com/IHDDx3Mrlq6JBUTa3dATwi
+
+⚠️ PERINGATAN PENTING KETENTUAN PEMBAYARAN & GRUP:
+
+Nominal Transfer Musti Sesuai:
+Mohon pastikan nominal pembayaran yang Anda transfer sesuai dengan total biaya dari pilihan/ceklis webinar yang Anda pilih saat mendaftar.
+
+Verifikasi Bukti Transfer:
+Apabila bukti transfer yang Anda unggah tidak sesuai dengan pilihan webinar yang terdata di sistem, maka Tim Admin akan melakukan konfirmasi ulang kepada Anda sebelum akses/sertifikat diproses.
+
+Peserta Paket 4 Webinar:
+Jika Anda mendaftar/mengeceklis keempat grup webinar, silakan masuk ke seluruh (4) grup WhatsApp di atas demi kepentingan konfirmasi dan sinkronisasi data peserta.
+
+Informasi teknis acara dan tautan Zoom dibagikan berkala di masing-masing grup.
+
+Jika ada kendala, silakan hubungi Tim Admin via pesan ini.
+
+Salam hangat,
+Panitia Pelaksana Webinar Nasional`;
+
+    navigator.clipboard.writeText(textToCopy);
+    onSuccessToast('📋 Teks Pengumuman & Link Grup WA Berhasil Disalin!');
   };
 
   const handleResetAndClose = () => {
@@ -805,69 +848,230 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               </form>
             )}
 
-            {/* STEP 3: Success Screen */}
+            {/* STEP 3: Success Screen & WA Group Links */}
             {step === 3 && (
-              <div className="text-center py-6 space-y-6">
-                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
-                  <CheckCircle2 className="w-12 h-12" />
+              <div className="text-left py-2 space-y-5 animate-fadeIn">
+                {/* Header Banner */}
+                <div className="bg-emerald-50/90 border border-emerald-300 p-4 sm:p-5 rounded-3xl text-center space-y-2.5 shadow-sm">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto shadow-md">
+                    <CheckCircle2 className="w-9 h-9 sm:w-10 sm:h-10" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                      Selamat! Pendaftaran Berhasil Dilakukan ✨
+                    </h3>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-lg mx-auto leading-relaxed">
+                      Yth. Bapak/Ibu Peserta (<span className="font-extrabold text-slate-900">{fullName}</span>), Terima kasih telah melakukan pendaftaran untuk rangkaian Webinar Nasional.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 bg-emerald-100/80 text-emerald-900 font-extrabold text-xs px-3.5 py-1.5 rounded-full border border-emerald-300">
+                    <span>Total Lunas: Rp {totalAmount.toLocaleString('id-ID')}</span>
+                    <span>•</span>
+                    <span>{selectedSeries.length} Seri Webinar</span>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-extrabold text-slate-900">
-                    Pendaftaran & Pembayaran Berhasil!
-                  </h3>
-                  <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-                    Terima kasih, <span className="font-bold text-slate-900">{fullName}</span>. Bukti transfer telah terverifikasi.
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-left max-w-md mx-auto space-y-2.5 text-xs sm:text-sm text-slate-700">
-                  <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-slate-500">Nama (LMS):</span>
-                    <span className="font-bold text-slate-900">{fullName}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-slate-500">Email (LMS):</span>
-                    <span className="font-bold text-slate-900">{email}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-slate-500">NIK KTP:</span>
-                    <span className="font-mono font-bold text-slate-900">{nikKtp}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-slate-500">Asal Instalasi:</span>
-                    <span className="font-bold text-slate-900">{installation}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-slate-500">Kab/Kota:</span>
-                    <span className="font-bold text-slate-900">{city}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-slate-500">Seri Terpilih:</span>
-                    <span className="font-bold text-cyan-800">{selectedSeries.join(', ')}</span>
-                  </div>
-                  <div className="flex justify-between pt-1">
-                    <span className="text-slate-600 font-bold">Total Lunas:</span>
-                    <span className="font-extrabold text-emerald-700 text-base">
-                      Rp {totalAmount.toLocaleString('id-ID')}
+                {/* WA Group Join Header */}
+                <div className="space-y-3">
+                  <div className="bg-gradient-to-r from-slate-900 to-cyan-950 text-white p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-cyan-800">
+                    <div>
+                      <span className="text-[10px] text-cyan-300 font-extrabold uppercase tracking-wider block">Langkah Penting Berikutnya:</span>
+                      <h4 className="font-black text-sm sm:text-base text-emerald-400">Bergabung Ke Grup WhatsApp Resmi Webinar</h4>
+                    </div>
+                    <span className="text-[11px] font-bold bg-white/20 px-3 py-1 rounded-xl shrink-0 self-start sm:self-auto">
+                      * Klik tombol hijau di bawah
                     </span>
                   </div>
-                  <div className="flex justify-between pt-1 text-xs text-slate-500">
-                    <span>Berkas Bukti:</span>
-                    <span className="font-bold text-slate-700">{fileName}</span>
+
+                  <p className="text-xs text-slate-700 font-semibold px-1">
+                    Silakan bergabung ke dalam grup WhatsApp resmi sesuai dengan topik webinar yang Anda pilih melalui tautan di bawah ini:
+                  </p>
+
+                  {/* 4 WA Group Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* 1. Uronefro */}
+                    <div className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                      selectedSeries.includes('URONEFRO')
+                        ? 'bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-200 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">🩺</span>
+                          <div>
+                            <h5 className="font-black text-xs sm:text-sm text-slate-900">1. Webinar Uronefro</h5>
+                            <span className="text-[10px] text-slate-500 font-medium">Grup Diskusi & Akses Zoom</span>
+                          </div>
+                        </div>
+                        {selectedSeries.includes('URONEFRO') && (
+                          <span className="px-2 py-0.5 text-[10px] font-black bg-emerald-600 text-white rounded-full shrink-0">
+                            Pilihan Anda
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href="https://chat.whatsapp.com/Bi7RW2ZekSZAwhxag79IDX"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Gabung Grup WA Uronefro</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                      </a>
+                    </div>
+
+                    {/* 2. Onkologi */}
+                    <div className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                      selectedSeries.includes('ONKOLOGI')
+                        ? 'bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-200 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">🎗️</span>
+                          <div>
+                            <h5 className="font-black text-xs sm:text-sm text-slate-900">2. Webinar Onkologi</h5>
+                            <span className="text-[10px] text-slate-500 font-medium">Grup Diskusi & Akses Zoom</span>
+                          </div>
+                        </div>
+                        {selectedSeries.includes('ONKOLOGI') && (
+                          <span className="px-2 py-0.5 text-[10px] font-black bg-emerald-600 text-white rounded-full shrink-0">
+                            Pilihan Anda
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href="https://chat.whatsapp.com/LR7sAKvlvWP6FEm3rlvM8P"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Gabung Grup WA Onkologi</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                      </a>
+                    </div>
+
+                    {/* 3. Neuro */}
+                    <div className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                      selectedSeries.includes('NEUROSAINS')
+                        ? 'bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-200 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">🧠</span>
+                          <div>
+                            <h5 className="font-black text-xs sm:text-sm text-slate-900">3. Webinar Neuro</h5>
+                            <span className="text-[10px] text-slate-500 font-medium">Grup Diskusi & Akses Zoom</span>
+                          </div>
+                        </div>
+                        {selectedSeries.includes('NEUROSAINS') && (
+                          <span className="px-2 py-0.5 text-[10px] font-black bg-emerald-600 text-white rounded-full shrink-0">
+                            Pilihan Anda
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href="https://chat.whatsapp.com/CfEni7dgG5iGNgR27bJixg"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Gabung Grup WA Neuro</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                      </a>
+                    </div>
+
+                    {/* 4. Jantung */}
+                    <div className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                      selectedSeries.includes('JANTUNG')
+                        ? 'bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-200 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">❤️</span>
+                          <div>
+                            <h5 className="font-black text-xs sm:text-sm text-slate-900">4. Webinar Jantung</h5>
+                            <span className="text-[10px] text-slate-500 font-medium">Grup Diskusi & Akses Zoom</span>
+                          </div>
+                        </div>
+                        {selectedSeries.includes('JANTUNG') && (
+                          <span className="px-2 py-0.5 text-[10px] font-black bg-emerald-600 text-white rounded-full shrink-0">
+                            Pilihan Anda
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href="https://chat.whatsapp.com/IHDDx3Mrlq6JBUTa3dATwi"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Gabung Grup WA Jantung</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                      </a>
+                    </div>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 max-w-md mx-auto">
-                  Link Zoom dan petunjuk presensi LMS akan dikirimkan ke email <span className="font-semibold text-slate-700">{email}</span> dan WhatsApp <span className="font-semibold text-slate-700">{phone}</span>.
-                </p>
+                {/* Ketentuan & Peringatan Penting Box */}
+                <div className="p-4 bg-amber-50/90 border border-amber-300 rounded-2xl space-y-3 text-xs leading-relaxed text-slate-800">
+                  <div className="flex items-center gap-2 font-black text-amber-950 text-xs uppercase tracking-wide">
+                    <AlertTriangle className="w-4.5 h-4.5 text-amber-600 shrink-0" />
+                    <span>⚠️ PERINGATAN PENTING KETENTUAN PEMBAYARAN & GRUP:</span>
+                  </div>
 
-                <div className="pt-2">
+                  <div className="space-y-2 text-[11px] text-slate-800">
+                    <div>
+                      <span className="font-extrabold text-amber-950 block">1. Nominal Transfer Musti Sesuai:</span>
+                      <p className="text-slate-700">Mohon pastikan nominal pembayaran yang Anda transfer sesuai dengan total biaya dari pilihan/ceklis webinar yang Anda pilih saat mendaftar.</p>
+                    </div>
+
+                    <div>
+                      <span className="font-extrabold text-amber-950 block">2. Verifikasi Bukti Transfer:</span>
+                      <p className="text-slate-700">Apabila bukti transfer yang Anda unggah tidak sesuai dengan pilihan webinar yang terdata di sistem, maka Tim Admin akan melakukan konfirmasi ulang kepada Anda sebelum akses/sertifikat diproses.</p>
+                    </div>
+
+                    <div>
+                      <span className="font-extrabold text-amber-950 block">3. Peserta Paket 4 Webinar:</span>
+                      <p className="text-slate-800 font-bold text-emerald-950 bg-emerald-100/80 p-2.5 rounded-xl border border-emerald-300 mt-0.5">
+                        Jika Anda mendaftar/mengeceklis keempat grup webinar, silakan masuk ke seluruh (4) grup WhatsApp di atas demi kepentingan konfirmasi dan sinkronisasi data peserta.
+                      </p>
+                    </div>
+
+                    <p className="pt-1 text-slate-700 font-semibold">
+                      Informasi teknis acara dan tautan Zoom dibagikan berkala di masing-masing grup. Jika ada kendala, silakan hubungi Tim Admin via pesan ini.
+                    </p>
+
+                    <p className="font-extrabold text-slate-900 pt-1">
+                      Salam hangat,<br />
+                      <span className="text-cyan-900">Panitia Pelaksana Webinar Nasional</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bottom Action Buttons */}
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
                   <button
-                    onClick={handleResetAndClose}
-                    className="w-full sm:w-auto px-10 py-3.5 text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-md transition-colors cursor-pointer"
+                    type="button"
+                    onClick={handleCopyAnnouncementText}
+                    className="w-full sm:w-1/2 py-3.5 px-4 bg-cyan-700 hover:bg-cyan-800 active:bg-cyan-900 text-white font-bold text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
-                    Tutup
+                    <Copy className="w-4 h-4" />
+                    <span>Salin Teks Pengumuman Ini</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetAndClose}
+                    className="w-full sm:w-1/2 py-3.5 px-4 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-extrabold text-xs rounded-2xl shadow-md transition-all cursor-pointer text-center"
+                  >
+                    Selesai & Tutup
                   </button>
                 </div>
               </div>
