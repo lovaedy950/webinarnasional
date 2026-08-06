@@ -477,6 +477,50 @@ export const updateRegistrationApprovedSeries = async (id: string, approvedSerie
   return updated;
 };
 
+export const updateRegistrationRecordByAdmin = async (id: string, updatedFields: Partial<RegistrationRecord>): Promise<RegistrationRecord[]> => {
+  const current = getRegistrations();
+
+  const updated = current.map(item => {
+    if (item.id === id) {
+      return {
+        ...item,
+        ...updatedFields
+      };
+    }
+    return item;
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+  // Sync to Supabase
+  try {
+    const target = updated.find(r => r.id === id);
+    if (target) {
+      await supabase.from('registrations').update({
+        full_name: target.fullName,
+        email: target.email,
+        nik_ktp: target.nikKtp,
+        installation: target.installation,
+        phone: target.phone,
+        clean_phone: target.cleanPhone,
+        city: target.city,
+        category_id: target.categoryId,
+        category_name: target.categoryName,
+        series: target.series,
+        total_amount: target.totalAmount,
+        payment_proof_name: target.paymentProofName,
+        payment_proof_url: target.paymentProofUrl,
+        status: target.status,
+        ...(target.notes !== undefined ? { notes: target.notes } : {})
+      }).eq('id', id);
+    }
+  } catch (err) {
+    console.warn('Failed to sync updated record to Supabase:', err);
+  }
+
+  return updated;
+};
+
 export const exportToCSV = (data: RegistrationRecord[]) => {
   const headers = ['ID Reg', 'Tanggal', 'Nama (LMS)', 'Email (LMS)', 'NIK KTP', 'Asal Instalasi', 'No HP', 'Kab/Kota', 'Kategori', 'Seri Terpilih', 'Total (Rp)', 'Status Pembayaran', 'Tgl Verifikasi'];
   

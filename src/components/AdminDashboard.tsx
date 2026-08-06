@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { RegistrationRecord } from '../types';
 import { 
-  getRegistrations, fetchRegistrationsFromDB, updateRegistrationStatus, updateRegistrationApprovedSeries, exportToCSV, 
+  getRegistrations, fetchRegistrationsFromDB, updateRegistrationStatus, updateRegistrationApprovedSeries, updateRegistrationRecordByAdmin, exportToCSV, 
   getSubmissionLogs, fetchSubmissionLogsFromDB, retrySubmissionToDB, deleteRegistration, SubmissionLog 
 } from '../data/registrationStore';
-import { getMaintenanceConfig, saveMaintenanceConfig, MaintenanceConfig } from '../data/webinarData';
+import { getMaintenanceConfig, saveMaintenanceConfig, MaintenanceConfig, PRICING_CATEGORIES, WEBINAR_SERIES_DATA } from '../data/webinarData';
+import { uploadProofToBackblaze } from '../lib/backblazeClient';
 import { 
   Users, CheckCircle2, Clock, XCircle, DollarSign, Search, Filter, Download, 
   Eye, LogOut, ExternalLink, Phone, MessageSquare, ShieldCheck, RefreshCw, FileText, 
-  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench, Menu, GraduationCap, Award
+  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench, Menu, GraduationCap, Award, Edit, UploadCloud
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import logoKariadi from '../assets/images/Logo_RS_Kariadi_Resmi.png';
@@ -51,6 +52,146 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
   const [deleteTargetRecord, setDeleteTargetRecord] = useState<RegistrationRecord | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleteErrorMsg, setDeleteErrorMsg] = useState<string>('');
+
+  // Admin Edit Mode State
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editSeries, setEditSeries] = useState<string[]>([]);
+  const [editCategoryId, setEditCategoryId] = useState<string>('perawat_rsdk');
+  const [editTotalAmount, setEditTotalAmount] = useState<number>(0);
+  const [editProofFileName, setEditProofFileName] = useState<string>('');
+  const [editProofUrl, setEditProofUrl] = useState<string>('');
+  const [isUploadingEditProof, setIsUploadingEditProof] = useState<boolean>(false);
+  const [showAdminEditConfirmModal, setShowAdminEditConfirmModal] = useState<boolean>(false);
+  const [isAdminEditChecked, setIsAdminEditChecked] = useState<boolean>(false);
+
+  const handleStartEditRecord = (record: RegistrationRecord) => {
+    setEditSeries(record.series || []);
+    setEditCategoryId(record.categoryId || 'perawat_rsdk');
+    setEditTotalAmount(record.totalAmount || 0);
+    setEditProofFileName(record.paymentProofName || '');
+    setEditProofUrl(record.paymentProofUrl || '');
+    setIsAdminEditChecked(false);
+    setIsEditMode(true);
+  };
+
+  const handleRecalculateAmount = (series: string[], catId: string) => {
+    const cat = PRICING_CATEGORIES.find(c => c.id === catId) || PRICING_CATEGORIES[0];
+    return cat.rawPrice * series.length;
+  };
+
+  const handleEditSeriesToggle = (seriesTitle: string) => {
+    let updatedSeries: string[] = [];
+    if (editSeries.includes(seriesTitle)) {
+      updatedSeries = editSeries.filter(s => s !== seriesTitle);
+    } else {
+      updatedSeries = [...editSeries, seriesTitle];
+    }
+    setEditSeries(updatedSeries);
+    setEditTotalAmount(handleRecalculateAmount(updatedSeries, editCategoryId));
+  };
+
+  const handleEditCategoryChange = (catId: string) => {
+    setEditCategoryId(catId);
+    setEditTotalAmount(handleRecalculateAmount(editSeries, catId));
+  };
+
+  const handleEditFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedRecord) return;
+
+    setEditProofFileName(file.name);
+    setIsUploadingEditProof(true);
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = async () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1600;
+          const MAX_HEIGHT = 1600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+          
+          try {
+            const b2Res = await uploadProofToBackblaze(file.name, compressedBase64, selectedRecord.id);
+            setEditProofUrl(b2Res.presignedUrl || b2Res.key || compressedBase64);
+          } catch (err) {
+            setEditProofUrl(compressedBase64);
+          } finally {
+            setIsUploadingEditProof(false);
+          }
+        };
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result as string;
+        try {
+          const b2Res = await uploadProofToBackblaze(file.name, base64Data, selectedRecord.id);
+          setEditProofUrl(b2Res.presignedUrl || b2Res.key || base64Data);
+        } catch (err) {
+          setEditProofUrl(base64Data);
+        } finally {
+          setIsUploadingEditProof(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleOpenAdminEditConfirm = () => {
+    if (editSeries.length === 0) {
+      alert('⚠️ Pilihan seri webinar tidak boleh kosong. Mohon pilih minimal 1 seri.');
+      return;
+    }
+    setIsAdminEditChecked(false);
+    setShowAdminEditConfirmModal(true);
+  };
+
+  const handleExecuteAdminEditSave = async () => {
+    if (!selectedRecord) return;
+
+    const catObj = PRICING_CATEGORIES.find(c => c.id === editCategoryId);
+
+    const updated = await updateRegistrationRecordByAdmin(selectedRecord.id, {
+      series: editSeries,
+      categoryId: editCategoryId,
+      categoryName: catObj ? catObj.role : selectedRecord.categoryName,
+      totalAmount: editTotalAmount,
+      paymentProofName: editProofFileName || selectedRecord.paymentProofName,
+      paymentProofUrl: editProofUrl || selectedRecord.paymentProofUrl,
+      notes: `[EDITED_BY_ADMIN: ${new Date().toISOString().slice(0, 16)}] ${selectedRecord.notes || ''}`
+    });
+
+    setRegistrations(updated);
+    setSelectedRecord(updated.find(r => r.id === selectedRecord.id) || null);
+    setShowAdminEditConfirmModal(false);
+    setIsEditMode(false);
+    setRetryMessage(`✅ Data pendaftaran ${selectedRecord.fullName} (${selectedRecord.id}) berhasil diperbarui & disimpan ke Supabase!`);
+    setTimeout(() => setRetryMessage(null), 5000);
+  };
 
   const handleToggleMaintenance = (isClosed: boolean) => {
     const updated = saveMaintenanceConfig({
@@ -1250,15 +1391,169 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                 <h3 className="text-lg sm:text-xl font-extrabold pr-4">{selectedRecord.fullName}</h3>
                 <span className="text-[10px] sm:text-xs font-mono text-slate-400">{selectedRecord.id} • {selectedRecord.createdAt}</span>
               </div>
-              <button
-                onClick={() => setSelectedRecord(null)}
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              
+              <div className="flex items-center gap-2">
+                {!isEditMode ? (
+                  <button
+                    type="button"
+                    onClick={() => handleStartEditRecord(selectedRecord)}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Edit Pilihan Seri & Upload Bukti Transfer Baru"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>Edit Seri & Bukti</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditMode(false)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <span>Batal Edit</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setSelectedRecord(null);
+                    setIsEditMode(false);
+                  }}
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
+            {isEditMode ? (
+              /* ADMIN EDIT FORM MODE */
+              <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 text-left bg-slate-50">
+                <div className="p-4 bg-amber-50 border border-amber-300 rounded-2xl text-xs text-amber-900 font-medium space-y-1">
+                  <div className="flex items-center gap-1.5 font-black text-amber-800">
+                    <Edit className="w-4 h-4 text-amber-600" />
+                    <span>Mode Edit Seri & Bukti Transfer Peserta</span>
+                  </div>
+                  <p>
+                    Gunakan mode ini jika nominal transfer tidak sesuai dengan pilihan awal peserta. Anda dapat menyesuaikan seri webinar yang dipilih dan mengunggah ulang bukti transfer jika diperlukan.
+                  </p>
+                </div>
+
+                {/* 1. EDIT SERI WEBINAR CHECKLIST */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                  <label className="text-xs font-black uppercase text-slate-800 tracking-wider block">
+                    1. Sesuaikan Pilihan Seri Webinar:
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {WEBINAR_SERIES_DATA.map((series) => {
+                      const isChecked = editSeries.includes(series.title);
+                      return (
+                        <button
+                          key={series.id}
+                          type="button"
+                          onClick={() => handleEditSeriesToggle(series.title)}
+                          className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                            isChecked
+                              ? 'bg-cyan-50 border-cyan-300 text-cyan-950 font-bold shadow-sm ring-1 ring-cyan-200'
+                              : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              readOnly
+                              className="w-4 h-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                            />
+                            <span className="text-xs font-bold">{series.title}</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-slate-500">{series.date}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. EDIT KATEGORI & TOTAL TAGIHAN */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+                  <div>
+                    <label className="text-xs font-black uppercase text-slate-800 tracking-wider block mb-1">
+                      2. Kategori Peserta:
+                    </label>
+                    <select
+                      value={editCategoryId}
+                      onChange={(e) => handleEditCategoryChange(e.target.value)}
+                      className="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-800 focus:ring-2 focus:ring-cyan-500 focus:bg-white"
+                    >
+                      {PRICING_CATEGORIES.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.role} (Rp {cat.rawPrice.toLocaleString('id-ID')} / webinar)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-black uppercase text-slate-800 tracking-wider block mb-1">
+                      Total Tagihan Baru (Otomatis / Manual):
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-xs font-extrabold text-slate-400">Rp</span>
+                      <input
+                        type="number"
+                        value={editTotalAmount}
+                        onChange={(e) => setEditTotalAmount(Number(e.target.value) || 0)}
+                        className="w-full text-sm font-black bg-slate-50 border border-slate-300 rounded-xl py-2 pl-9 pr-3 text-slate-900 focus:ring-2 focus:ring-cyan-500 focus:bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. UPLOAD BUKTI TRANSFER BARU */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <label className="text-xs font-black uppercase text-slate-800 tracking-wider block">
+                    3. Upload Bukti Transfer Baru (Opsional):
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="px-4 py-2.5 bg-cyan-700 hover:bg-cyan-800 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer transition-colors">
+                      <UploadCloud className="w-4 h-4" />
+                      <span>{isUploadingEditProof ? 'Mengunggah ke Storage...' : 'Pilih Berkas Baru (Foto / PDF)'}</span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={handleEditFileChange}
+                        className="hidden"
+                        disabled={isUploadingEditProof}
+                      />
+                    </label>
+                    <span className="text-xs font-mono text-slate-600 truncate max-w-[200px]">
+                      {editProofFileName || selectedRecord.paymentProofName || 'Tetap berkas lama'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* TOMBOL SIMPAN & BATAL EDIT */}
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditMode(false)}
+                    className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+                  >
+                    Batal Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenAdminEditConfirm}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Simpan & Update Data Peserta</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* NORMAL VIEW MODE */
+              <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div>
                   <span className="text-slate-500 block text-[10px]">Nama Lengkap (LMS):</span>
@@ -1576,8 +1871,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="p-4 bg-slate-50 border-t border-slate-200 text-right">
+          <div className="p-4 bg-slate-50 border-t border-slate-200 text-right">
               <button
                 onClick={() => setSelectedRecord(null)}
                 className="px-6 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
@@ -1718,6 +2014,88 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MANDATORY ADMIN EDIT CONFIRMATION WARNING MODAL */}
+      {showAdminEditConfirmModal && selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/85 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-amber-300 space-y-5 animate-scaleUp text-left">
+            {/* Header Warning */}
+            <div className="flex items-start gap-3.5 pb-4 border-b border-slate-100">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 shrink-0 shadow-sm">
+                <AlertTriangle className="w-7 h-7" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-amber-700 uppercase tracking-widest block">PERINGATAN KONFIRMASI PERUBAHAN</span>
+                <h3 className="text-lg font-black text-slate-900 leading-snug">Konfirmasi Update Data & Bukti Transfer</h3>
+              </div>
+            </div>
+
+            {/* Detail Ringkasan Edit */}
+            <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-2.5 text-xs text-slate-800 font-medium">
+              <p className="font-bold text-amber-900">
+                Mohon pastikan data yang Anda edit berikut sudah <u>BENAR & SESUAI</u> dengan bukti transfer asli peserta:
+              </p>
+
+              <div className="space-y-1.5 pt-2 border-t border-amber-200/60 font-mono">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">ID & Nama:</span>
+                  <span className="font-bold text-slate-900">{selectedRecord.id} ({selectedRecord.fullName})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Seri Terbaru ({editSeries.length} Webinar):</span>
+                  <span className="font-bold text-cyan-800">{editSeries.join(', ')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Total Nominal Baru:</span>
+                  <span className="font-black text-emerald-700 text-sm">Rp {editTotalAmount.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Bukti Transfer:</span>
+                  <span className="font-bold text-slate-800 truncate max-w-[200px]">{editProofFileName || selectedRecord.paymentProofName}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mandatory Checkbox Confirmation */}
+            <label className="flex items-start gap-2.5 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+              <input
+                type="checkbox"
+                checked={isAdminEditChecked}
+                onChange={(e) => setIsAdminEditChecked(e.target.checked)}
+                className="w-5 h-5 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500 mt-0.5"
+              />
+              <span className="text-xs text-slate-800 font-bold leading-snug">
+                Saya mengonfirmasi bahwa data seri webinar, nominal, dan bukti transfer ini sudah <span className="text-emerald-700 underline">BENAR & SESUAI</span> untuk diperbarui di database Supabase.
+              </span>
+            </label>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAdminEditConfirmModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Batal / Periksa Lagi
+              </button>
+
+              <button
+                type="button"
+                disabled={!isAdminEditChecked}
+                onClick={handleExecuteAdminEditSave}
+                className={`px-5 py-2.5 rounded-xl font-black text-xs text-white shadow-md flex items-center gap-1.5 transition-all ${
+                  isAdminEditChecked
+                    ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer shadow-emerald-500/20'
+                    : 'bg-slate-300 border border-slate-400 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Ya, Data Sudah Benar & Update Data</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
