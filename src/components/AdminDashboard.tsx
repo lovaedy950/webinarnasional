@@ -6,6 +6,7 @@ import {
 } from '../data/registrationStore';
 import { getMaintenanceConfig, saveMaintenanceConfig, MaintenanceConfig, PRICING_CATEGORIES, WEBINAR_SERIES_DATA } from '../data/webinarData';
 import { uploadProofToBackblaze } from '../lib/backblazeClient';
+import { supabase } from '../lib/supabaseClient';
 import { 
   Users, CheckCircle2, Clock, XCircle, DollarSign, Search, Filter, Download, 
   Eye, LogOut, ExternalLink, Phone, MessageSquare, ShieldCheck, RefreshCw, FileText, 
@@ -253,6 +254,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
 
   useEffect(() => {
     loadData();
+
+    // Supabase Real-time WebSocket Channel for Instant Multi-Device Sync
+    const channel = supabase
+      .channel('realtime:registrations')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registrations' },
+        async () => {
+          const freshData = await fetchRegistrationsFromDB();
+          if (freshData && freshData.length > 0) {
+            setRegistrations(freshData);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleToggleStatus = async (id: string, currentStatus: string) => {
@@ -264,6 +284,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
     } else {
       nextStatus = 'pending';
     }
+
+    const targetItem = registrations.find(r => r.id === id);
+    const approvedSeries = nextStatus === 'approved_diklat' 
+      ? (targetItem?.series || []) 
+      : (nextStatus === 'pending' || nextStatus === 'rejected') 
+      ? [] 
+      : (targetItem?.approvedSeries || []);
+
+    const verifiedAt = (nextStatus === 'valid' || nextStatus === 'approved_diklat') 
+      ? new Date().toISOString().replace('T', ' ').slice(0, 16) 
+      : targetItem?.verifiedAt;
+
+    // ⚡ INSTANT OPTIMISTIC UI MUTATION (0 ms delay)
+    setRegistrations(prev => prev.map(item => item.id === id ? { 
+      ...item, 
+      status: nextStatus, 
+      approvedSeries,
+      verifiedAt
+    } : item));
+
+    if (selectedRecord && selectedRecord.id === id) {
+      setSelectedRecord(prev => prev ? { 
+        ...prev, 
+        status: nextStatus, 
+        approvedSeries,
+        verifiedAt
+      } : null);
+    }
+
+    // Background Storage & DB Sync
     const updated = await updateRegistrationStatus(id, nextStatus);
     setRegistrations(updated);
     if (selectedRecord && selectedRecord.id === id) {
@@ -277,6 +327,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
       alert('⚠️ Tidak dapat Approve Diklat! Mohon set status "Sudah Membayar" terlebih dahulu.');
       return;
     }
+
+    const approvedSeries = status === 'approved_diklat' 
+      ? (target?.series || []) 
+      : (status === 'pending' || status === 'rejected') 
+      ? [] 
+      : (target?.approvedSeries || []);
+
+    const verifiedAt = (status === 'valid' || status === 'approved_diklat') 
+      ? new Date().toISOString().replace('T', ' ').slice(0, 16) 
+      : target?.verifiedAt;
+
+    // ⚡ INSTANT OPTIMISTIC UI MUTATION (0 ms delay)
+    setRegistrations(prev => prev.map(item => item.id === id ? { 
+      ...item, 
+      status, 
+      approvedSeries,
+      verifiedAt
+    } : item));
+
+    if (selectedRecord && selectedRecord.id === id) {
+      setSelectedRecord(prev => prev ? { 
+        ...prev, 
+        status, 
+        approvedSeries,
+        verifiedAt
+      } : null);
+    }
+
+    // Background Storage & DB Sync
     const updated = await updateRegistrationStatus(id, status);
     setRegistrations(updated);
     if (selectedRecord && selectedRecord.id === id) {
@@ -299,6 +378,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
       newApproved = [...currentApproved, seriesTitle];
     }
 
+    const newStatus: 'pending' | 'valid' | 'approved_diklat' | 'rejected' = newApproved.length > 0 
+      ? 'approved_diklat' 
+      : (record.status === 'approved_diklat' ? 'valid' : record.status);
+
+    // ⚡ INSTANT OPTIMISTIC UI MUTATION (0 ms delay)
+    setRegistrations(prev => prev.map(item => item.id === record.id ? { 
+      ...item, 
+      approvedSeries: newApproved,
+      status: newStatus 
+    } : item));
+
+    if (selectedRecord && selectedRecord.id === record.id) {
+      setSelectedRecord(prev => prev ? { 
+        ...prev, 
+        approvedSeries: newApproved,
+        status: newStatus 
+      } : null);
+    }
+
+    // Background Storage & DB Sync
     const updated = await updateRegistrationApprovedSeries(record.id, newApproved);
     setRegistrations(updated);
     if (selectedRecord && selectedRecord.id === record.id) {
@@ -312,7 +411,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
       return;
     }
 
-    const updated = await updateRegistrationApprovedSeries(record.id, record.series);
+    const newApproved = record.series;
+
+    // ⚡ INSTANT OPTIMISTIC UI MUTATION (0 ms delay)
+    setRegistrations(prev => prev.map(item => item.id === record.id ? { 
+      ...item, 
+      approvedSeries: newApproved,
+      status: 'approved_diklat' 
+    } : item));
+
+    if (selectedRecord && selectedRecord.id === record.id) {
+      setSelectedRecord(prev => prev ? { 
+        ...prev, 
+        approvedSeries: newApproved,
+        status: 'approved_diklat' 
+      } : null);
+    }
+
+    // Background Storage & DB Sync
+    const updated = await updateRegistrationApprovedSeries(record.id, newApproved);
     setRegistrations(updated);
     if (selectedRecord && selectedRecord.id === record.id) {
       setSelectedRecord(updated.find(r => r.id === record.id) || null);
