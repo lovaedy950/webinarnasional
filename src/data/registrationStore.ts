@@ -169,7 +169,25 @@ export const recordSubmissionLog = async (log: Omit<SubmissionLog, 'id' | 'creat
 // Save new Registration: Upload proof to Backblaze B2 -> Save record to Supabase
 export const saveRegistration = async (record: Omit<RegistrationRecord, 'id' | 'createdAt' | 'status'>): Promise<{ success: boolean; message: string; data?: RegistrationRecord }> => {
   const current = getRegistrations();
-  const regId = `REG-101-${String(current.length + 1).padStart(3, '0')}`;
+  
+  // 0. Fetch live DB records to ensure unique incremental REG ID
+  let maxNum = 0;
+  try {
+    const dbRecords = await fetchRegistrationsFromDB();
+    const recordsToScan = dbRecords && dbRecords.length > 0 ? dbRecords : current;
+    recordsToScan.forEach(r => {
+      const match = r.id.match(/\d+$/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    });
+  } catch (e) {
+    maxNum = current.length;
+  }
+
+  const nextNum = maxNum > 0 ? maxNum + 1 : (current.length + 1);
+  const regId = `REG-101-${String(nextNum).padStart(3, '0')}`;
   const createdAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
 
   let b2ProofKey = '';
@@ -187,7 +205,6 @@ export const saveRegistration = async (record: Omit<RegistrationRecord, 'id' | '
       b2PresignedUrl = b2Res.presignedUrl;
     } catch (b2Err: any) {
       console.warn('Backblaze B2 Upload Notice:', b2Err);
-      // Fallback: keep base64 or proof name if B2 upload encounters network issue
       b2ProofKey = record.paymentProofUrl;
     }
   }
@@ -220,7 +237,11 @@ export const saveRegistration = async (record: Omit<RegistrationRecord, 'id' | '
       status: 'pending'
     }]).select();
 
-    if (!error && data && data.length > 0) {
+    if (error) {
+      throw error;
+    }
+
+    if (data && data.length > 0) {
       const updated = [newRecord, ...current.filter(r => r.id !== regId)];
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
