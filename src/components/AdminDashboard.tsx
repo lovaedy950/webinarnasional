@@ -8,7 +8,7 @@ import { getMaintenanceConfig, saveMaintenanceConfig, MaintenanceConfig } from '
 import { 
   Users, CheckCircle2, Clock, XCircle, DollarSign, Search, Filter, Download, 
   Eye, LogOut, ExternalLink, Phone, MessageSquare, ShieldCheck, RefreshCw, FileText, 
-  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench, Menu
+  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench, Menu, GraduationCap, Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import logoKariadi from '../assets/images/Logo_RS_Kariadi_Resmi.png';
@@ -107,7 +107,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
   }, []);
 
   const handleToggleStatus = async (id: string, currentStatus: string) => {
-    const nextStatus = currentStatus === 'valid' ? 'pending' : 'valid';
+    let nextStatus: 'pending' | 'valid' | 'approved_diklat' | 'rejected' = 'valid';
+    if (currentStatus === 'pending') {
+      nextStatus = 'valid';
+    } else if (currentStatus === 'valid') {
+      nextStatus = 'approved_diklat';
+    } else {
+      nextStatus = 'pending';
+    }
     const updated = await updateRegistrationStatus(id, nextStatus);
     setRegistrations(updated);
     if (selectedRecord && selectedRecord.id === id) {
@@ -115,7 +122,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
     }
   };
 
-  const handleUpdateStatusExplicit = async (id: string, status: 'pending' | 'valid' | 'rejected') => {
+  const handleUpdateStatusExplicit = async (id: string, status: 'pending' | 'valid' | 'approved_diklat' | 'rejected') => {
+    const target = registrations.find(r => r.id === id);
+    if (status === 'approved_diklat' && target && target.status === 'pending') {
+      alert('⚠️ Tidak dapat Approve Diklat! Mohon set status "Sudah Membayar" terlebih dahulu.');
+      return;
+    }
     const updated = await updateRegistrationStatus(id, status);
     setRegistrations(updated);
     if (selectedRecord && selectedRecord.id === id) {
@@ -164,8 +176,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
   // Calculate Statistics
   const totalCount = registrations.length;
   const validCount = registrations.filter(r => r.status === 'valid').length;
+  const approvedDiklatCount = registrations.filter(r => r.status === 'approved_diklat').length;
   const pendingCount = registrations.filter(r => r.status === 'pending').length;
-  const totalRevenue = registrations.filter(r => r.status === 'valid').reduce((acc, curr) => acc + curr.totalAmount, 0);
+  const totalRevenue = registrations.filter(r => r.status === 'valid' || r.status === 'approved_diklat').reduce((acc, curr) => acc + curr.totalAmount, 0);
 
   const totalLogsCount = submissionLogs.length;
   const dbErrorsCount = submissionLogs.filter(l => l.status === 'db_error' && !l.isResolved).length;
@@ -540,45 +553,55 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
         {activeTab === 'registrations' && (
           <div className="space-y-6">
             
-            {/* 4 Overview Statistics Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            {/* 5 Overview Statistics Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Pendaftar</span>
-                  <span className="text-2xl font-black text-slate-900 mt-1 block">{totalCount} Peserta</span>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Pendaftar</span>
+                  <span className="text-xl font-black text-slate-900 mt-1 block">{totalCount} Peserta</span>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center font-bold">
-                  <Users className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center font-bold shrink-0">
+                  <Users className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between">
+              <div className="bg-white p-4.5 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Sudah Membayar (Valid)</span>
-                  <span className="text-2xl font-black text-emerald-800 mt-1 block">{validCount} Lunas</span>
+                  <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">Sudah Membayar</span>
+                  <span className="text-xl font-black text-emerald-800 mt-1 block">{validCount} Lunas</span>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between">
+              <div className="bg-white p-4.5 rounded-2xl border border-indigo-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block">Menunggu Verifikasi</span>
-                  <span className="text-2xl font-black text-amber-800 mt-1 block">{pendingCount} Pending</span>
+                  <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider block">Approve Diklat</span>
+                  <span className="text-xl font-black text-indigo-900 mt-1 block">{approvedDiklatCount} Diklat</span>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
-                  <Clock className="w-6 h-6 text-amber-600" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold shrink-0">
+                  <GraduationCap className="w-5 h-5 text-indigo-700" />
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div className="bg-white p-4.5 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Omset Lunas</span>
-                  <span className="text-xl font-black text-cyan-900 mt-1 block">Rp {totalRevenue.toLocaleString('id-ID')}</span>
+                  <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block">Menunggu Verifikasi</span>
+                  <span className="text-xl font-black text-amber-800 mt-1 block">{pendingCount} Pending</span>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-cyan-900 text-white flex items-center justify-center font-bold">
-                  <DollarSign className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold shrink-0">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+              </div>
+
+              <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Omset</span>
+                  <span className="text-lg font-black text-cyan-900 mt-1 block">Rp {totalRevenue.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-cyan-900 text-white flex items-center justify-center font-bold shrink-0">
+                  <DollarSign className="w-5 h-5" />
                 </div>
               </div>
             </div>
@@ -603,7 +626,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="w-full py-2.5 px-3 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-white"
                   >
-                    <option value="all">Semua Status Pembayaran</option>
+                    <option value="all">Semua Status Pembayaran & Diklat</option>
+                    <option value="approved_diklat">🎓 Approve Diklat</option>
                     <option value="valid">✅ Sudah Membayar (Valid)</option>
                     <option value="pending">⏳ Menunggu Verifikasi (Pending)</option>
                     <option value="rejected">❌ Ditolak</option>
@@ -650,6 +674,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                 </div>
               ) : (
                 filteredData.map((record) => {
+                  const isApproved = record.status === 'approved_diklat';
                   const isValid = record.status === 'valid';
                   const isRejected = record.status === 'rejected';
 
@@ -665,14 +690,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                         <button
                           onClick={() => handleToggleStatus(record.id, record.status)}
                           className={`px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 transition-all cursor-pointer ${
-                            isValid
+                            isApproved
+                              ? 'bg-indigo-100 text-indigo-900 border border-indigo-300'
+                              : isValid
                               ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                               : isRejected
                               ? 'bg-red-100 text-red-800 border border-red-300'
                               : 'bg-amber-100 text-amber-800 border border-amber-300'
                           }`}
                         >
-                          {isValid ? (
+                          {isApproved ? (
+                            <>
+                              <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
+                              <span>APPROVE DIKLAT</span>
+                            </>
+                          ) : isValid ? (
                             <>
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                               <span>SUDAH MEMBAYAR</span>
@@ -685,7 +717,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                           ) : (
                             <>
                               <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-                              <span>PENDING (CEKLIST)</span>
+                              <span>PENDING</span>
                             </>
                           )}
                         </button>
@@ -715,6 +747,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                             </span>
                           ))}
                         </div>
+                      </div>
+
+                      {/* Card Status Action Row */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                        {record.status === 'pending' ? (
+                          <>
+                            <button
+                              onClick={() => handleUpdateStatusExplicit(record.id, 'valid')}
+                              className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] rounded-xl shadow-sm flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Set Sudah Membayar</span>
+                            </button>
+                            <button
+                              onClick={() => alert('⚠️ Mohon set "Sudah Membayar" terlebih dahulu sebelum Approve Diklat!')}
+                              className="flex-1 py-1.5 px-2 bg-slate-100 text-slate-400 font-bold text-[11px] rounded-xl border border-slate-200 cursor-not-allowed opacity-60 flex items-center justify-center gap-1"
+                              title="Harus set Sudah Membayar terlebih dahulu"
+                            >
+                              <GraduationCap className="w-3.5 h-3.5" />
+                              <span>Approve Diklat 🔒</span>
+                            </button>
+                          </>
+                        ) : record.status === 'valid' ? (
+                          <button
+                            onClick={() => handleUpdateStatusExplicit(record.id, 'approved_diklat')}
+                            className="w-full py-1.5 px-2 bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold text-[11px] rounded-xl shadow-md flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <GraduationCap className="w-3.5 h-3.5" />
+                            <span>Klik untuk Approve Diklat 🎓</span>
+                          </button>
+                        ) : isApproved ? (
+                          <div className="w-full py-1 px-2 bg-indigo-50 border border-indigo-200 rounded-xl text-center text-indigo-900 font-extrabold text-[11px] flex items-center justify-center gap-1">
+                            <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
+                            <span>Status: Approved Diklat ✨</span>
+                          </div>
+                        ) : null}
                       </div>
 
                       {/* Card Footer: Tagihan & Touch Actions */}
@@ -770,7 +838,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                   Daftar Peserta Pendaftar ({filteredData.length} Data)
                 </span>
                 <span className="text-[11px] text-slate-500 font-semibold">
-                  * Klik tombol checklist untuk memverifikasi pembayaran
+                  * Set "Sudah Membayar" terlebih dahulu untuk membuka akses "Approve Diklat"
                 </span>
               </div>
 
@@ -778,7 +846,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-100 text-slate-700 font-extrabold uppercase tracking-wider text-[10px] border-b border-slate-200">
                     <tr>
-                      <th className="p-3.5 text-center">Status / Validasi</th>
+                      <th className="p-3.5 text-center">Status / Validasi & Diklat</th>
                       <th className="p-3.5">ID & Waktu</th>
                       <th className="p-3.5">Nama & Email LMS</th>
                       <th className="p-3.5">NIK KTP</th>
@@ -799,23 +867,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                       </tr>
                     ) : (
                       filteredData.map((record) => {
+                        const isApproved = record.status === 'approved_diklat';
                         const isValid = record.status === 'valid';
                         const isRejected = record.status === 'rejected';
 
                         return (
                           <tr key={record.id} className="hover:bg-cyan-50/40 transition-colors">
-                            <td className="p-3.5 text-center">
+                            <td className="p-3.5 text-center space-y-1">
                               <button
                                 onClick={() => handleToggleStatus(record.id, record.status)}
-                                className={`px-3 py-1.5 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                  isValid
+                                className={`w-full px-2.5 py-1.5 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                  isApproved
+                                    ? 'bg-indigo-100 text-indigo-900 border border-indigo-300 hover:bg-indigo-200'
+                                    : isValid
                                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
                                     : isRejected
                                     ? 'bg-red-100 text-red-800 border border-red-300 hover:bg-red-200'
                                     : 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
                                 }`}
                               >
-                                {isValid ? (
+                                {isApproved ? (
+                                  <>
+                                    <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
+                                    <span>Approve Diklat</span>
+                                  </>
+                                ) : isValid ? (
                                   <>
                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                                     <span>Sudah Membayar</span>
@@ -828,10 +904,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                                 ) : (
                                   <>
                                     <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                    <span>Ceklist Valid</span>
+                                    <span>Pending</span>
                                   </>
                                 )}
                               </button>
+
+                              {/* Quick Action Button for Approve Diklat if status === valid */}
+                              {isValid && (
+                                <button
+                                  onClick={() => handleUpdateStatusExplicit(record.id, 'approved_diklat')}
+                                  className="w-full px-2 py-1 bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold text-[10px] rounded-lg shadow-sm flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                  title="Klik untuk Approve Diklat"
+                                >
+                                  <GraduationCap className="w-3 h-3" />
+                                  <span>Approve Diklat 🎓</span>
+                                </button>
+                              )}
+
+                              {record.status === 'pending' && (
+                                <button
+                                  onClick={() => alert('⚠️ Mohon set "Sudah Membayar" terlebih dahulu sebelum Approve Diklat!')}
+                                  className="w-full px-2 py-1 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-lg border border-slate-200 cursor-not-allowed opacity-60 flex items-center justify-center gap-1"
+                                  title="Harus set Sudah Membayar terlebih dahulu"
+                                >
+                                  <GraduationCap className="w-3 h-3" />
+                                  <span>Approve Diklat 🔒</span>
+                                </button>
+                              )}
                             </td>
 
                             <td className="p-3.5 font-mono text-[11px]">
@@ -1299,48 +1398,85 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                 )}
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-200">
-                <span className="text-xs font-extrabold text-slate-700 block">Ubah Status Verifikasi Pembayaran:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div className="space-y-3 pt-3 border-t border-slate-200">
+                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
+                  Manajemen Status Verifikasi & Diklat:
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  {/* 1. Set Sudah Membayar */}
                   <button
                     type="button"
                     onClick={() => handleUpdateStatusExplicit(selectedRecord.id, 'valid')}
-                    className={`py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    className={`py-3 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       selectedRecord.status === 'valid'
                         ? 'bg-emerald-600 text-white shadow-md'
-                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                        : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
                     }`}
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Set Sudah Membayar</span>
+                    <span>Sudah Membayar</span>
                   </button>
 
+                  {/* 2. Approve Diklat (Only enabled when status is valid or approved_diklat) */}
+                  <button
+                    type="button"
+                    disabled={selectedRecord.status === 'pending'}
+                    onClick={() => {
+                      if (selectedRecord.status === 'pending') {
+                        alert('⚠️ Tidak dapat Approve Diklat! Mohon set "Sudah Membayar" terlebih dahulu.');
+                        return;
+                      }
+                      handleUpdateStatusExplicit(selectedRecord.id, 'approved_diklat');
+                    }}
+                    title={selectedRecord.status === 'pending' ? 'Harus di-set Sudah Membayar terlebih dahulu' : 'Approve Diklat'}
+                    className={`py-3 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                      selectedRecord.status === 'approved_diklat'
+                        ? 'bg-indigo-700 text-white shadow-md'
+                        : selectedRecord.status === 'pending'
+                        ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md cursor-pointer'
+                    }`}
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Approve Diklat</span>
+                  </button>
+
+                  {/* 3. Set Pending */}
                   <button
                     type="button"
                     onClick={() => handleUpdateStatusExplicit(selectedRecord.id, 'pending')}
-                    className={`py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    className={`py-3 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       selectedRecord.status === 'pending'
                         ? 'bg-amber-500 text-white shadow-md'
-                        : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+                        : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
                     }`}
                   >
                     <Clock className="w-4 h-4" />
                     <span>Set Menunggu</span>
                   </button>
 
+                  {/* 4. Tolak */}
                   <button
                     type="button"
                     onClick={() => handleUpdateStatusExplicit(selectedRecord.id, 'rejected')}
-                    className={`py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    className={`py-3 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       selectedRecord.status === 'rejected'
                         ? 'bg-red-600 text-white shadow-md'
-                        : 'bg-red-50 text-red-800 border border-red-200 hover:bg-red-100'
+                        : 'bg-red-50 text-red-800 border border-red-300 hover:bg-red-100'
                     }`}
                   >
                     <XCircle className="w-4 h-4" />
                     <span>Tolak Bukti</span>
                   </button>
                 </div>
+
+                {selectedRecord.status === 'pending' && (
+                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-[11px] text-amber-900 font-bold flex items-start gap-2 text-left">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <span>⚠️ ATURAN ALUR: Tombol <strong>"Approve Diklat"</strong> terkunci. Klik tombol <strong>"Sudah Membayar"</strong> terlebih dahulu untuk membuka akses Approve Diklat.</span>
+                  </div>
+                )}
               </div>
             </div>
 

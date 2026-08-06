@@ -87,7 +87,7 @@ export interface RegistrationRecord {
   totalAmount: number;
   paymentProofName?: string;
   paymentProofUrl?: string;
-  status: 'pending' | 'valid' | 'rejected';
+  status: 'pending' | 'valid' | 'approved_diklat' | 'rejected';
   verifiedAt?: string;
   notes?: string;
 }

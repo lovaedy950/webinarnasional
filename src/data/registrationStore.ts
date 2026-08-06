@@ -402,9 +402,9 @@ export const retrySubmissionToDB = async (logId: number | string): Promise<{ suc
   }
 };
 
-export const updateRegistrationStatus = async (id: string, status: 'pending' | 'valid' | 'rejected', notes?: string): Promise<RegistrationRecord[]> => {
+export const updateRegistrationStatus = async (id: string, status: 'pending' | 'valid' | 'approved_diklat' | 'rejected', notes?: string): Promise<RegistrationRecord[]> => {
   const current = getRegistrations();
-  const verifiedAt = status === 'valid' ? new Date().toISOString().replace('T', ' ').slice(0, 16) : undefined;
+  const verifiedAt = (status === 'valid' || status === 'approved_diklat') ? new Date().toISOString().replace('T', ' ').slice(0, 16) : undefined;
 
   const updated = current.map(item => {
     if (item.id === id) {
