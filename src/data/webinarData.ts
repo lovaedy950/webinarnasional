@@ -102,21 +102,21 @@ export const WEBINAR_SERIES_DATA: WebinarSeries[] = [
     contactPerson: CONTACT_PERSONS_KHUSUS[0],
     waGroupLink: 'https://chat.whatsapp.com/LR7sAKvlvWP6FEm3rlvM8P',
     speakers: [
-      { name: 'dr. Eko Adhi Pangarsa, Sp.PD-KHOM', role: 'Konsultan Hematologi Onkologi Medik', institution: 'RSUP Dr. Kariadi' },
-      { name: 'dr. Muchlis, Sp.A(K)', role: 'Konsultan Hematologi Onkologi Anak', institution: 'RSUP Dr. Kariadi' },
-      { name: 'Ns. Sri Mulyani, S.Kep, M.Kep', role: 'Perawat Spesialis Onkologi', institution: 'RSUP Dr. Kariadi' },
-      { name: 'apt. Rina Rahmawati, S.Farm, M.Sc', role: 'Apoteker Kanker & Transpantasi', institution: 'RSUP Dr. Kariadi' },
+      { name: 'Dr. dr. Eko Adhi Pangarsa, Sp.PD., KHOM', role: 'Konsultan Hematologi Onkologi Medik', institution: 'RSUP Dr. Kariadi' },
+      { name: 'Ns. Aditya Tri Nugroho, S.Kep', role: 'Nursing Clinical Attachment (Bone Marrow Transplant)', institution: 'RSUP Dr. Kariadi' },
+      { name: 'Apt. Padika Nudya Risalati Rachman, M.Farm', role: 'Farmasis Klinik / Apoteker', institution: 'RSUP Dr. Kariadi' },
+      { name: 'Ns. Enggar Purnaningsih, S.Kep., M.Kep, Sp.KMB', role: 'Perawat Spesialis Medikal Bedah / MPP', institution: 'RSUP Dr. Kariadi' },
     ],
     moderators: [
-      { name: 'dr. Agnes Listya, Sp.PD', role: 'Dokter Spesialis Penyakit Dalam', institution: 'RSUP Dr. Kariadi' }
+      { name: 'Ns. Sri Indah Ekowati, S.Kep., M.Kep', role: 'Moderator Diskusi Panel', institution: 'RSUP Dr. Kariadi' }
     ],
     agenda: [
       { time: '08.00 - 08.30', topic: 'Pembukaan & Keynote Speech Layanan Transplantasi Organ/Jaringan', speaker: 'Direktur Utama RSUP Dr. Kariadi' },
-      { time: '08.30 - 09.45', topic: 'Indikasi dan Preparasi Pasien Transplantasi Sumsum Tulang', speaker: 'dr. Eko Adhi Pangarsa, Sp.PD-KHOM' },
-      { time: '09.45 - 11.00', topic: 'Penatalaksanaan Komplikasi Graft Versus Host Disease (GVHD)', speaker: 'dr. Muchlis, Sp.A(K)' },
-      { time: '11.00 - 12.15', topic: 'Manajemen Keperawatan Khusus Pasien Stem Cell Transplant', speaker: 'Ns. Sri Mulyani, S.Kep, M.Kep' },
-      { time: '12.15 - 13.30', topic: 'Manajemen Farmakoterapi Imunosupresan Pasca Transplantasi', speaker: 'apt. Rina Rahmawati, S.Farm, M.Sc' },
-      { time: '13.30 - 14.00', topic: 'Diskusi Interaktif & Tanya Jawab', speaker: 'Semua Pembicara & Moderator' }
+      { time: '08.30 - 09.30', topic: 'Materi 1: "Penguatan Kolaborasi Interprofesi dalam Pengembangan Layanan Transplantasi Sumsum Tulang di Indonesia." (Materi ini membahas pentingnya penguatan kolaborasi interprofesi dalam membangun layanan transplantasi sumsum tulang yang aman, berkualitas, dan berkelanjutan guna meningkatkan akses serta luaran pasien di Indonesia.)', speaker: 'Dr. dr. Eko Adhi Pangarsa, Sp.PD., KHOM' },
+      { time: '09.30 - 10.30', topic: 'Materi 2: "Peran Keperawatan dalam Menjamin Keselamatan Pasien pada Setiap Fase Transplantasi Sumsum Tulang" (Materi ini mengulas peran strategis perawat dalam menjamin keselamatan pasien melalui asuhan keperawatan yang komprehensif, pemantauan klinis, pencegahan komplikasi, serta edukasi pada setiap fase transplantasi sumsum tulang.)', speaker: 'Ns. Aditya Tri Nugroho, S.Kep, Nursing Clinical Attachment (Bone Marrow Transplant)' },
+      { time: '10.30 - 11.30', topic: 'Materi 3: "Optimalisasi Peran Farmasis dalam Pengelolaan Terapi dan Pencegahan Medication Error pada Pasien HSCT" (Materi ini membahas optimalisasi peran farmasis dalam memastikan terapi obat yang aman, efektif, dan rasional melalui pengelolaan regimen pengobatan serta pencegahan medication error pada pasien yang menjalani Hematopoietic Stem Cell Transplantation (HSCT).)', speaker: 'Apt. Padika Nudya Risalati Rachman, M.Farm' },
+      { time: '11.30 - 12.30', topic: 'Materi 4: "Integrasi Peran MPP dan Administrasi Pelayanan dalam Menjamin Kontinuitas Pelayanan Pasien Transplantasi Sumsum Tulang" (Materi ini membahas integrasi peran Manajer Pelayanan Pasien (MPP) dan administrasi pelayanan dalam mengoordinasikan proses layanan, memastikan kontinuitas pelayanan, serta mendukung kelancaran perjalanan pasien transplantasi sumsum tulang dari pra hingga pascatransplantasi.)', speaker: 'Ns. Enggar Purnaningsih, S.Kep., M.Kep, Sp.KMB' },
+      { time: '12.30 - 13.30', topic: 'Diskusi Panel & Tanya Jawab Komprehensif', speaker: 'Moderator: Ns. Sri Indah Ekowati, S.Kep., M.Kep' }
     ]
   },
   {
