@@ -1,34 +1,54 @@
 @import "tailwindcss";
 
-/* OFFICIAL PRINT STYLES FOR A4 INVOICE & RECEIPTS */
+/* BULLETPROOF A4 PRINT MEDIA STYLES FOR INVOICE MODAL */
 @media print {
-  /* 1. Hide everything on the webpage during print */
+  /* 1. Hide main layout sections cleanly */
+  header,
+  main,
+  footer,
+  nav,
+  aside,
+  .toast-container {
+    display: none !important;
+  }
+
+  /* 2. Reset html & body to a clean printable document */
   html, body {
     background: #ffffff !important;
     color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    height: auto !important;
     overflow: visible !important;
   }
 
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* 2. Make ONLY the printable invoice element and its children visible */
-  #printable-invoice,
-  #printable-invoice * {
-    visibility: visible !important;
-  }
-
-  /* 3. Position the printable invoice at the absolute top-left of the A4 page */
-  #printable-invoice {
+  /* 3. Force overlay container to static top-level block */
+  #printable-invoice-overlay {
     position: absolute !important;
-    left: 0 !important;
     top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    z-index: 999999 !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+  }
+
+  /* 4. Force invoice content card to expand fully on A4 page */
+  #printable-invoice {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
@@ -36,16 +56,25 @@
     border-radius: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    display: block !important;
+    overflow: visible !important;
   }
 
-  /* 4. Hide print control bars, buttons, and close icons */
+  /* 5. Ensure printable inner text containers stay visible and unclipped */
+  #printable-invoice * {
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
+
+  /* 6. Hide action bars, buttons, and close controls */
   .no-print,
   .print\:hidden {
     display: none !important;
-    visibility: hidden !important;
   }
 
-  /* 5. Set A4 Portrait page size with standard clean margins */
+  /* 7. Standard A4 Page Setup */
   @page {
     size: A4 portrait;
     margin: 10mm 12mm;

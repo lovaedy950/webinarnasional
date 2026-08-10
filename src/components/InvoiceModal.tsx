@@ -61,7 +61,10 @@ Panitia Pelaksana Webinar Nasional`;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto bg-slate-900/80 backdrop-blur-sm print:p-0 print:bg-white print:static print:inset-auto">
+      <div 
+        id="printable-invoice-overlay"
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto bg-slate-900/80 backdrop-blur-sm print:p-0 print:bg-white print:static print:inset-auto"
+      >
         
         {/* Backdrop Click (Disabled in Print) */}
         <motion.div
