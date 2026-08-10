@@ -74,6 +74,7 @@ Panitia Pelaksana Webinar Nasional`;
 
         {/* Modal Invoice Window */}
         <motion.div
+          id="printable-invoice"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}

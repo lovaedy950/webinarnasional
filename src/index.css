@@ -1,1 +1,53 @@
 @import "tailwindcss";
+
+/* OFFICIAL PRINT STYLES FOR A4 INVOICE & RECEIPTS */
+@media print {
+  /* 1. Hide everything on the webpage during print */
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* 2. Make ONLY the printable invoice element and its children visible */
+  #printable-invoice,
+  #printable-invoice * {
+    visibility: visible !important;
+  }
+
+  /* 3. Position the printable invoice at the absolute top-left of the A4 page */
+  #printable-invoice {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* 4. Hide print control bars, buttons, and close icons */
+  .no-print,
+  .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 5. Set A4 Portrait page size with standard clean margins */
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+}
