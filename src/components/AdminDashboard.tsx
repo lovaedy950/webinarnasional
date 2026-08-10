@@ -7,10 +7,11 @@ import {
 import { getMaintenanceConfig, saveMaintenanceConfig, MaintenanceConfig, PRICING_CATEGORIES, WEBINAR_SERIES_DATA } from '../data/webinarData';
 import { uploadProofToBackblaze } from '../lib/backblazeClient';
 import { supabase } from '../lib/supabaseClient';
+import { InvoiceModal } from './InvoiceModal';
 import { 
   Users, CheckCircle2, Clock, XCircle, DollarSign, Search, Filter, Download, 
   Eye, LogOut, ExternalLink, Phone, MessageSquare, ShieldCheck, RefreshCw, FileText, 
-  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench, Menu, GraduationCap, Award, Edit, UploadCloud
+  CheckSquare, X, Building2, AlertTriangle, Database, Activity, RotateCcw, ShieldAlert, Trash2, Power, Settings, Wrench, Menu, GraduationCap, Award, Edit, UploadCloud, Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import logoKariadi from '../assets/images/Logo_RS_Kariadi_Resmi.png';
@@ -29,6 +30,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
 
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
   const [submissionLogs, setSubmissionLogs] = useState<SubmissionLog[]>([]);
+
+  // Invoice State
+  const [selectedInvoiceRecord, setSelectedInvoiceRecord] = useState<RegistrationRecord | null>(null);
 
   // Maintenance Config State
   const [maintConfig, setMaintConfig] = useState<MaintenanceConfig>(getMaintenanceConfig());
@@ -1169,6 +1173,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
                               </div>
 
                               <div className="flex items-center gap-1.5">
+                                {(isValid || isApproved) && (
+                                  <button
+                                    onClick={() => setSelectedInvoiceRecord(record)}
+                                    className="px-2.5 py-1.5 rounded-xl bg-cyan-700 hover:bg-cyan-800 text-white font-extrabold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-sm"
+                                    title="Cetak Invoice Pembayaran PPNI"
+                                  >
+                                    <Printer className="w-3.5 h-3.5" />
+                                    <span>Invoice</span>
+                                  </button>
+                                )}
+
                                 <a
                                   href={`https://wa.me/${record.cleanPhone}`}
                                   target="_blank"
@@ -1399,6 +1414,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
 
                                   <td className="p-3.5 text-center">
                                     <div className="flex items-center justify-center gap-1">
+                                      {(isValid || isApproved) && (
+                                        <button
+                                          onClick={() => setSelectedInvoiceRecord(record)}
+                                          className="p-1.5 rounded-lg bg-cyan-700 hover:bg-cyan-800 text-white transition-colors cursor-pointer flex items-center gap-1 font-extrabold text-[11px] px-2 shadow-sm"
+                                          title="Cetak / Kirim Invoice Resmi PPNI"
+                                        >
+                                          <Printer className="w-3.5 h-3.5" />
+                                          <span className="hidden xl:inline">Invoice</span>
+                                        </button>
+                                      )}
+
                                       <button
                                         onClick={() => setSelectedRecord(record)}
                                         className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
@@ -2170,17 +2196,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
             </div>
           )}
 
-          <div className="p-4 bg-slate-50 border-t border-slate-200 text-right">
+          <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+            {(selectedRecord.status === 'valid' || selectedRecord.status === 'approved_diklat') ? (
               <button
-                onClick={() => setSelectedRecord(null)}
-                className="px-6 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                type="button"
+                onClick={() => setSelectedInvoiceRecord(selectedRecord)}
+                className="px-4 py-2.5 bg-cyan-700 hover:bg-cyan-800 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
               >
-                Tutup
+                <Printer className="w-4 h-4" />
+                <span>Cetak / Kirim Invoice Resmi PPNI 📄</span>
               </button>
-            </div>
+            ) : (
+              <span className="text-[11px] text-amber-800 font-bold bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+                🔒 Invoice aktif setelah status Sudah Membayar
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setSelectedRecord(null)}
+              className="px-6 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+            >
+              Tutup
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* RAW PAYLOAD JSON MODAL FOR LOGS */}
       {selectedLog && (
@@ -2528,6 +2570,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onGoTo
             className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-scaleUp"
           />
         </div>
+      )}
+
+      {/* INVOICE MODAL POPUP */}
+      {selectedInvoiceRecord && (
+        <InvoiceModal
+          record={selectedInvoiceRecord}
+          onClose={() => setSelectedInvoiceRecord(null)}
+        />
       )}
 
     </div>
