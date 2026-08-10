@@ -129,28 +129,31 @@ Panitia Pelaksana Webinar Nasional`;
           {/* Printable Invoice Container */}
           <div className="p-6 sm:p-10 overflow-y-auto flex-1 text-slate-800 space-y-6 print:p-6 print:overflow-visible print:text-black">
             
-            {/* Header Logos & Title Kop DPK PPNI */}
+            {/* Header Logos & Title Kop DPK PPNI RSUP Dr. Kariadi Semarang */}
             <div className="border-b-2 border-slate-900 pb-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <img 
                     src={logoDpkpPpni} 
-                    alt="Logo DPKP PPNI" 
-                    className="h-16 sm:h-20 w-auto object-contain shrink-0" 
+                    alt="Logo DPK PPNI RSUP Dr. Kariadi Semarang" 
+                    className="h-20 sm:h-24 w-auto object-contain shrink-0" 
                   />
                 </div>
                 
                 <div className="text-center flex-1 px-2">
-                  <h3 className="text-xs sm:text-sm font-black uppercase text-slate-900 tracking-wider">
+                  <h2 className="text-sm sm:text-base font-black uppercase text-cyan-950 tracking-wider">
+                    DEWAN PENGURUS KOMISARIAT (DPK)
+                  </h2>
+                  <h3 className="text-xs sm:text-sm font-extrabold uppercase text-slate-900 tracking-wide mt-0.5">
                     PERSATUAN PERAWAT NASIONAL INDONESIA (PPNI)
                   </h3>
-                  <h2 className="text-sm sm:text-base font-extrabold text-cyan-900">
-                    DEWAN PENGURUS KOMISARIAT (DPK) RSUP DR. KARIADI
+                  <h2 className="text-sm sm:text-base font-black uppercase text-cyan-900 mt-0.5">
+                    RSUP DR. KARIADI SEMARANG
                   </h2>
-                  <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5">
+                  <p className="text-[10px] sm:text-xs text-slate-600 mt-1">
                     Jl. Dr. Sutomo No. 16, Randusari, Semarang | Telp: (024) 8413476
                   </p>
-                  <p className="text-[10px] font-mono text-emerald-800 font-bold mt-0.5">
+                  <p className="text-[10px] font-mono text-emerald-800 font-extrabold mt-0.5">
                     Panitia Pelaksana Parade Webinar Nasional 2026
                   </p>
                 </div>
@@ -159,7 +162,7 @@ Panitia Pelaksana Webinar Nasional`;
                   <img 
                     src={logoKariadi} 
                     alt="Logo RSUP Dr Kariadi" 
-                    className="h-14 sm:h-18 w-auto object-contain" 
+                    className="h-16 sm:h-20 w-auto object-contain" 
                   />
                 </div>
               </div>
