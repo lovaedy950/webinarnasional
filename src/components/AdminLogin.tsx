@@ -77,7 +77,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
                 <input
                   type="text"
                   required
-                  placeholder="adminwebinar"
+                  placeholder="Masukkan username admin..."
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-300 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100 text-sm font-semibold text-slate-800 transition-all"
@@ -112,11 +112,13 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
             </button>
           </form>
 
-          {/* Hint Credentials Box */}
-          <div className="p-3.5 rounded-2xl bg-cyan-50 border border-cyan-200 text-[11px] text-cyan-900 font-medium space-y-1">
-            <span className="font-extrabold text-cyan-800 block">Kredensial Default Admin:</span>
-            <p>Username: <code className="bg-white px-1.5 py-0.5 rounded font-mono font-bold text-slate-900">adminwebinar</code></p>
-            <p>Password: <code className="bg-white px-1.5 py-0.5 rounded font-mono font-bold text-slate-900">hut101</code></p>
+          {/* Secure Production Notice */}
+          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 font-medium space-y-1">
+            <span className="font-extrabold text-slate-800 block flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-cyan-700" />
+              <span>Sistem Otentikasi Terenkripsi:</span>
+            </span>
+            <p>Halaman ini khusus untuk Tim Admin & Diklat RSUP Dr. Kariadi Semarang. Masukkan username dan password resmi Anda.</p>
           </div>
         </div>
 
