@@ -281,11 +281,11 @@ Panitia Pelaksana Webinar Nasional`;
                 </p>
 
                 {/* Stempel & Tanda Tangan Image */}
-                <div className="my-1.5 relative w-48 h-24 flex items-center justify-center">
+                <div className="my-1 relative w-56 h-28 flex items-center justify-center">
                   <img 
                     src={ttdBendahara} 
                     alt="Tanda Tangan & Stempel Bendahara DPK PPNI" 
-                    className="max-h-24 w-auto object-contain"
+                    className="max-h-28 w-auto object-contain mix-blend-multiply filter contrast-125 hover:scale-105 transition-transform"
                   />
                 </div>
 
