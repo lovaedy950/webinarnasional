@@ -8,6 +8,7 @@ import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
 import { DetailModal } from './components/DetailModal';
 import { RegistrationModal } from './components/RegistrationModal';
+import { PublicStatusCheckModal } from './components/PublicStatusCheckModal';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Toast } from './components/Toast';
@@ -23,11 +24,24 @@ export default function App() {
   });
 
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isStatusCheckOpen, setIsStatusCheckOpen] = useState(false);
+  const [initialCheckNik, setInitialCheckNik] = useState('');
+
   const [selectedDetailSeries, setSelectedDetailSeries] = useState<WebinarSeries | null>(null);
   const [preselectedSeriesTitle, setPreselectedSeriesTitle] = useState<string>('ONKOLOGI');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check URL params for ?nik=... or #cek-status
+    const urlParams = new URLSearchParams(window.location.search);
+    const nikParam = urlParams.get('nik');
+    if (nikParam) {
+      setInitialCheckNik(nikParam);
+      setIsStatusCheckOpen(true);
+    } else if (window.location.hash === '#cek-status' || window.location.hash === '#invoice') {
+      setIsStatusCheckOpen(true);
+    }
+
     const handlePopState = () => {
       if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
         setView('admin');
@@ -84,7 +98,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white text-slate-800 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] selection:bg-red-500 selection:text-white">
       {/* Navbar Header */}
-      <Navbar onOpenRegister={() => setIsRegisterOpen(true)} />
+      <Navbar 
+        onOpenRegister={() => setIsRegisterOpen(true)}
+        onOpenCheckStatus={() => setIsStatusCheckOpen(true)}
+      />
 
       {/* Main Content Sections */}
       <main className="flex-1">
@@ -108,7 +125,10 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <Footer onOpenAdmin={navigateToAdmin} />
+      <Footer 
+        onOpenAdmin={navigateToAdmin} 
+        onOpenCheckStatus={() => setIsStatusCheckOpen(true)}
+      />
 
       {/* Interactive Detail Modal */}
       <DetailModal
@@ -124,6 +144,13 @@ export default function App() {
         preselectedSeriesTitle={preselectedSeriesTitle}
         onCopyAccount={handleCopyAccount}
         onSuccessToast={(msg) => setToastMsg(msg)}
+      />
+
+      {/* Public Self-Service Status Check & Invoice Modal (No Login) */}
+      <PublicStatusCheckModal
+        isOpen={isStatusCheckOpen}
+        onClose={() => setIsStatusCheckOpen(false)}
+        initialNik={initialCheckNik}
       />
 
       {/* Toast Notification */}

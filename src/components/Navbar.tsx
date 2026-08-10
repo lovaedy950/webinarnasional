@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Menu, X, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Menu, X, AlertTriangle, Search, FileText } from 'lucide-react';
 import { MAINTENANCE_CONFIG, getMaintenanceConfig } from '../data/webinarData';
 import logoKemenkes from '../assets/images/logo kemenkes.png';
 import logoKariadi from '../assets/images/Logo_RS_Kariadi_Resmi.png';
@@ -7,9 +7,10 @@ import logoPpni from '../assets/images/logo ppni.png';
 
 interface NavbarProps {
   onOpenRegister: () => void;
+  onOpenCheckStatus: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenRegister }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenRegister, onOpenCheckStatus }) => {
   const [activeSection, setActiveSection] = useState('beranda');
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -105,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenRegister }) => {
                   key={link.id}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className={`relative px-3.5 py-2 text-sm font-medium transition-all duration-200 rounded-lg group ${
+                  className={`relative px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg group ${
                     isActive
                       ? 'text-cyan-700 font-semibold'
                       : 'text-slate-600 hover:text-cyan-700 hover:bg-slate-50'
@@ -122,8 +123,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenRegister }) => {
             })}
           </nav>
 
-          {/* Right CTA Button */}
-          <div className="hidden sm:flex items-center">
+          {/* Right CTA Buttons */}
+          <div className="hidden sm:flex items-center gap-2">
+            <button
+              onClick={onOpenCheckStatus}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-extrabold text-cyan-900 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-full transition-all cursor-pointer shadow-2xs"
+              title="Cek Status Pendaftaran & Unduh Invoice Pembayaran Mandiri"
+            >
+              <Search className="w-3.5 h-3.5 text-cyan-700" />
+              <span>CEK STATUS & INVOICE</span>
+            </button>
+
             {getMaintenanceConfig().isClosed ? (
               <button
                 onClick={onOpenRegister}
@@ -192,7 +202,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenRegister }) => {
               </a>
             );
           })}
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenCheckStatus();
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-extrabold text-cyan-900 bg-cyan-50 border border-cyan-200 rounded-full shadow-sm hover:bg-cyan-100"
+            >
+              <Search className="w-4 h-4 text-cyan-700" />
+              <span>CEK STATUS & INVOICE MANDIRI</span>
+            </button>
+
             <button
               onClick={() => {
                 setMobileMenuOpen(false);

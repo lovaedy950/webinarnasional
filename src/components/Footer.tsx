@@ -8,9 +8,10 @@ import logoPpni from '../assets/images/logo ppni.png';
 
 interface FooterProps {
   onOpenAdmin?: () => void;
+  onOpenCheckStatus?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenCheckStatus }) => {
   return (
     <footer id="narahubung" className="bg-[#0a4d61] text-white pt-12 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,21 +142,32 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
 
         </div>
 
-        {/* Copyright & Admin Link */}
+        {/* Copyright, Status Check & Admin Link */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-cyan-200/60 font-medium">
           <div>
             © 2026 RSUP Dr. Kariadi Semarang. All rights reserved. Parade Webinar Nasional HUT Ke-101.
           </div>
 
-          {onOpenAdmin && (
-            <button
-              onClick={onOpenAdmin}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-emerald-500 hover:text-white text-cyan-200 text-xs font-bold transition-all cursor-pointer"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>Admin Portal (/admin)</span>
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            {onOpenCheckStatus && (
+              <button
+                onClick={onOpenCheckStatus}
+                className="text-cyan-200 hover:text-emerald-300 font-bold transition-colors cursor-pointer underline flex items-center gap-1"
+              >
+                <span>🔍 Cek Status & Cetak Invoice Mandiri</span>
+              </button>
+            )}
+
+            {onOpenAdmin && (
+              <button
+                onClick={onOpenAdmin}
+                className="text-cyan-300/70 hover:text-cyan-100 flex items-center gap-1 font-semibold transition-colors cursor-pointer border border-cyan-400/30 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10"
+              >
+                <Lock className="w-3 h-3 text-emerald-400" />
+                <span>Portal Tim Admin</span>
+              </button>
+            )}
+          </div>
         </div>
 
       </div>
