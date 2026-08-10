@@ -130,41 +130,48 @@ Panitia Pelaksana Webinar Nasional`;
           <div className="p-6 sm:p-10 overflow-y-auto flex-1 text-slate-800 space-y-6 print:p-6 print:overflow-visible print:text-black">
             
             {/* Header Logos & Title Kop DPK PPNI RSUP Dr. Kariadi Semarang */}
-            <div className="border-b-2 border-slate-900 pb-5">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
+            <div className="border-b-4 border-double border-slate-900 pb-4">
+              <div className="flex items-center justify-between gap-3 sm:gap-6">
+                
+                {/* Left Logo: DPK PPNI */}
+                <div className="shrink-0 flex items-center justify-start w-24 sm:w-32">
                   <img 
                     src={logoDpkpPpni} 
                     alt="Logo DPK PPNI RSUP Dr. Kariadi Semarang" 
-                    className="h-20 sm:h-24 w-auto object-contain shrink-0" 
+                    className="h-16 sm:h-20 w-auto object-contain max-w-full" 
                   />
                 </div>
                 
-                <div className="text-center flex-1 px-2">
-                  <h2 className="text-sm sm:text-base font-black uppercase text-cyan-950 tracking-wider">
+                {/* Center Kop Typography */}
+                <div className="text-center flex-1 px-1 sm:px-2 space-y-0.5">
+                  <h2 className="text-xs sm:text-base font-black uppercase text-cyan-950 tracking-wider leading-tight">
                     DEWAN PENGURUS KOMISARIAT (DPK)
                   </h2>
-                  <h3 className="text-xs sm:text-sm font-extrabold uppercase text-slate-900 tracking-wide mt-0.5">
+                  <h3 className="text-[11px] sm:text-sm font-extrabold uppercase text-slate-900 tracking-wide leading-tight">
                     PERSATUAN PERAWAT NASIONAL INDONESIA (PPNI)
                   </h3>
-                  <h2 className="text-sm sm:text-base font-black uppercase text-cyan-900 mt-0.5">
+                  <h2 className="text-xs sm:text-base font-black uppercase text-cyan-900 tracking-wider leading-tight">
                     RSUP DR. KARIADI SEMARANG
                   </h2>
-                  <p className="text-[10px] sm:text-xs text-slate-600 mt-1">
+                  <p className="text-[10px] sm:text-xs text-slate-600 font-medium pt-1">
                     Jl. Dr. Sutomo No. 16, Randusari, Semarang | Telp: (024) 8413476
                   </p>
-                  <p className="text-[10px] font-mono text-emerald-800 font-extrabold mt-0.5">
-                    Panitia Pelaksana Parade Webinar Nasional 2026
-                  </p>
+                  <div className="pt-1">
+                    <span className="inline-block px-3 py-0.5 text-[9px] sm:text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200/80 rounded-full tracking-wider uppercase font-mono">
+                      Panitia Pelaksana Parade Webinar Nasional 2026
+                    </span>
+                  </div>
                 </div>
 
-                <div className="shrink-0">
+                {/* Right Logo: RSUP Dr. Kariadi */}
+                <div className="shrink-0 flex items-center justify-end w-24 sm:w-32">
                   <img 
                     src={logoKariadi} 
                     alt="Logo RSUP Dr Kariadi" 
-                    className="h-16 sm:h-20 w-auto object-contain" 
+                    className="h-16 sm:h-20 w-auto object-contain max-w-full" 
                   />
                 </div>
+
               </div>
             </div>
 
