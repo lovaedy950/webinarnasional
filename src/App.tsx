@@ -32,6 +32,11 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    // Sync live maintenance configuration from Supabase DB
+    import('./data/webinarData').then(mod => {
+      mod.fetchMaintenanceConfigFromDB();
+    });
+
     // Check URL params for ?nik=... or #cek-status
     const urlParams = new URLSearchParams(window.location.search);
     const nikParam = urlParams.get('nik');

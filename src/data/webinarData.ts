@@ -1,4 +1,5 @@
 import { WebinarSeries, PricingCategory, RegistrationStep, FaqItem, ContactPerson } from '../types';
+import { supabase } from '../lib/supabaseClient';
 
 export interface MaintenanceConfig {
   isClosed: boolean;
@@ -8,30 +9,81 @@ export interface MaintenanceConfig {
 }
 
 export const DEFAULT_MAINTENANCE_CONFIG: MaintenanceConfig = {
-  isClosed: false, // REGISTRATION NOW OPEN BY DEFAULT!
-  reopenTime: 'Hari Ini, Pukul 18.00 WIB',
-  title: 'Pendaftaran Ditutup Sementara',
-  message: 'Mohon maaf atas ketidaknyamanannya. Saat ini sistem pendaftaran webinar sedang dalam pemeliharaan teknis. Pendaftaran akan dibuka kembali sesuai jadwal.'
+  isClosed: true, // REGISTRATION CLOSED BY DEFAULT AS REQUESTED!
+  reopenTime: 'Sesuai Pengumuman Panitia',
+  title: 'Pendaftaran Ditutup',
+  message: 'Mohon maaf, pendaftaran Rangkaian Webinar Nasional DPK PPNI RSUP Dr. Kariadi saat ini TELAH DITUTUP. Terima kasih atas partisipasi Anda.'
 };
+
+let memoryMaintenanceConfig: MaintenanceConfig = DEFAULT_MAINTENANCE_CONFIG;
 
 export const getMaintenanceConfig = (): MaintenanceConfig => {
   try {
     const saved = localStorage.getItem('ppni_webinar_maintenance_config_v1');
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed.isClosed === 'boolean') {
+        memoryMaintenanceConfig = parsed;
+        return parsed;
+      }
     }
   } catch (e) {}
-  return DEFAULT_MAINTENANCE_CONFIG;
+  return memoryMaintenanceConfig;
 };
 
 export const saveMaintenanceConfig = (config: MaintenanceConfig): MaintenanceConfig => {
+  memoryMaintenanceConfig = config;
   try {
     localStorage.setItem('ppni_webinar_maintenance_config_v1', JSON.stringify(config));
   } catch (e) {}
+  syncMaintenanceConfigToDB(config);
   return config;
 };
 
-export const MAINTENANCE_CONFIG = getMaintenanceConfig();
+export const syncMaintenanceConfigToDB = async (config: MaintenanceConfig) => {
+  try {
+    await supabase.from('submission_logs').insert([
+      {
+        registration_id: 'SYSTEM_MAINTENANCE_CONFIG',
+        full_name: 'System Config',
+        email: 'config@ppni.org',
+        phone: '0000000000',
+        payload_json: JSON.stringify(config),
+        status: 'db_error',
+        is_resolved: true
+      }
+    ]);
+  } catch (err) {
+    console.warn('Failed to sync maintenance config to Supabase:', err);
+  }
+};
+
+export const fetchMaintenanceConfigFromDB = async (): Promise<MaintenanceConfig> => {
+  try {
+    const { data, error } = await supabase
+      .from('submission_logs')
+      .select('*')
+      .eq('registration_id', 'SYSTEM_MAINTENANCE_CONFIG')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (!error && Array.isArray(data) && data.length > 0 && data[0].payload_json) {
+      const parsed = JSON.parse(data[0].payload_json);
+      if (parsed && typeof parsed.isClosed === 'boolean') {
+        memoryMaintenanceConfig = parsed;
+        try {
+          localStorage.setItem('ppni_webinar_maintenance_config_v1', JSON.stringify(parsed));
+        } catch (e) {}
+        return parsed;
+      }
+    }
+  } catch (err) {}
+  return getMaintenanceConfig();
+};
+
+export const MAINTENANCE_CONFIG = new Proxy({}, {
+  get: (_, prop) => (getMaintenanceConfig() as any)[prop]
+}) as MaintenanceConfig;
 
 export const CONTACT_PERSONS_UMUM: ContactPerson[] = [
   {
